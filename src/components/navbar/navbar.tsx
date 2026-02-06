@@ -22,6 +22,7 @@ const Navbar = () => {
 
     const pathname = usePathname();
 
+    //Todo:add credits logic
     const me = useAppSelector(state => state.profile)
 
     const tabs: TabsProps[] = [
