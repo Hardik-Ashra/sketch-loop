@@ -1,7 +1,6 @@
 import { defineSchema, defineTable } from "convex/server";
 import { authTables } from "@convex-dev/auth/server";
 import { v } from "convex/values";
-import { stat } from "fs";
 const schema = defineSchema({
   ...authTables,
   // Your other tables...
@@ -24,9 +23,9 @@ const schema = defineSchema({
     creditsRolloverLimit: v.number(),
     lastGrantCursor: v.optional(v.string()),
   })
-  .index("by_userId", ["userId"])
-  .index("by_polarSubscriptionId", ["polarSubscriptionId"])
-  .index('by_status', ['status']),
+    .index("by_userId", ["userId"])
+    .index("by_polarSubscriptionId", ["polarSubscriptionId"])
+    .index('by_status', ['status']),
 
   credits_ledgers: defineTable({
     userId: v.id("users"),
