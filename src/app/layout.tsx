@@ -29,14 +29,14 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const rawProfile = await ProfileQuery()
+  const rawProfile = await ProfileQuery();
   const profile = normalizeProfile(
-    rawProfile._valueJSON as unknown as ConvexUserRaw | null
-  )
+    rawProfile._valueJSON as unknown as ConvexUserRaw | null,
+  );
 
   return (
     <ConvexAuthNextjsServerProvider>
-      <html lang="en" suppressHydrationWarning>
+      <html lang="en" suppressHydrationWarning className="bg-background">
         <body
           className={`${geistSans.variable} ${geistMono.variable} antialiased`}
         >
@@ -55,6 +55,6 @@ export default async function RootLayout({
           </ConvexClientProvider>
         </body>
       </html>
-    </ConvexAuthNextjsServerProvider >
+    </ConvexAuthNextjsServerProvider>
   );
 }
