@@ -6,7 +6,7 @@ const HistoryPill = () => {
   return (
     <div className="col-span-1 flex justify-start items-center">
       <div
-        className="inline-flex items-center rounded-full backdrop-blur-xl ☐ bg-white/8 border ☐ border-white/12 p-2 text-neutral-300 saturate-150"
+        className="inline-flex items-center rounded-full backdrop-blur-xl bg-white/8 border border-white/12 p-2 text-neutral-300 saturate-150"
         aria-hidden
       >
         <span
