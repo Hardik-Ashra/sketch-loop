@@ -1,10 +1,10 @@
 'use client'
-import { addArrow, addEllipse, addFrame, addFreeDrawShape, addLine, addRect, addText, clearSelection, removeShape, selectShape, setTool, Shape, Tool, updateShape } from "@/redux/slices/shapes";
+import { addArrow, addEllipse, addFrame, addFreeDrawShape, addLine, addRect, addText, clearSelection, FrameShape, removeShape, selectShape, setTool, Shape, Tool, updateShape } from "@/redux/slices/shapes";
 import { handToolDisable, handToolEnable, panEnd, panMove, panStart, Point, screenToWorld, wheelPan, wheelZoom } from "@/redux/slices/viewport";
-import { AppDispatch, useAppSelector } from "@/redux/store";
-import { useEffect, useRef, useState } from "react";
+import { AppDispatch, useAppDispatch, useAppSelector } from "@/redux/store";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useDispatch } from "react-redux"
-
+import { downloadBlob, generateFrameSnapshot } from "@/lib/frame-snapshot";
 interface TouchPointer {
     id: number,
     p: Point
@@ -22,10 +22,11 @@ export const useInfiniteCanvas = () => {
 
 
     const entityState = useAppSelector((s) => s.shapes.shapes)
-    const shapeList: Shape[] = entityState.ids
-        .map((id: string) => entityState.entities[id])
-        .filter((s: Shape | undefined): s is Shape => Boolean(s))
-
+    const shapeList = useMemo(() => {
+        return entityState.ids
+            .map((id: string) => entityState.entities[id])
+            .filter((s: Shape | undefined): s is Shape => Boolean(s))
+    }, [entityState])
     const currentTool = useAppSelector((s) => s.shapes.tool)
 
     const selectedShapes = useAppSelector((s) => s.shapes.selected)
@@ -278,7 +279,11 @@ export const useInfiniteCanvas = () => {
                         isMovingRef.current = true
                         moveStartRef.current = world
                         initialShapePositionRef.current = {}
-                        Object.keys(selectedShapes).forEach((id) => {
+                        const selectionIds = e.shiftKey
+                            ? { ...selectedShapes, [hitShape.id]: true }
+                            : { [hitShape.id]: true }
+
+                        Object.keys(selectionIds).forEach((id) => {
                             const shape = entityState.entities[id]
                             if (shape) {
                                 if (
@@ -297,7 +302,7 @@ export const useInfiniteCanvas = () => {
                                     }
                                 } else if (shape.type === 'arrow' || shape.type === 'line') {
                                     initialShapePositionRef.current[id] = {
-                                        startX: shape.startx,
+                                        startX: shape.startX,
                                         startY: shape.startY,
                                         endX: shape.endX,
                                         endY: shape.endY,
@@ -363,6 +368,14 @@ export const useInfiniteCanvas = () => {
                     dispatch(setTool('select'))
                 } else {
                     isDrawingRef.current = true
+
+                    if (currentTool === "freedraw") {
+                        freeDrawPointsRef.current = [world]
+                        lastFreehandFrameRef.current = performance.now()
+                        if (!freehandRafRef.current) {
+                            freehandRafRef.current = requestAnimationFrame(freehandTick)
+                        }
+                    }
                     if (
                         currentTool === 'frame' ||
                         currentTool === 'rect' ||
@@ -483,7 +496,12 @@ export const useInfiniteCanvas = () => {
                 requestRender()
             }
             else if (currentTool === 'freedraw') {
-                freeDrawPointsRef.current.push(world)
+                const pts = freeDrawPointsRef.current
+                const last = pts[pts.length - 1]
+
+                if (!last || Math.hypot(world.x - last.x, world.y - last.y) > 1.5) {
+                    pts.push(world)
+                }
             }
         }
 
@@ -590,40 +608,45 @@ export const useInfiniteCanvas = () => {
 
     useEffect(() => {
         const handleResizeStart = (e: CustomEvent) => {
-            const { shapeId, corner, bounds } = e.detail
+            const { shapeId, corner, bounds, clientX, clientY } = e.detail
+
             isResizingRef.current = true
             resizeDataRef.current = {
                 shapeId,
                 corner,
                 initialBounds: bounds,
-                startPoint: { x: e.detail.clientX || 0, y: e.detail.clientY || 0 },
+                startPoint: { x: clientX, y: clientY },
             }
         }
+
         const handleResizeMove = (e: CustomEvent) => {
             if (!isResizingRef.current || !resizeDataRef.current) return
-            const { shapeId, corner, initialBounds, startPoint } = resizeDataRef.current
+
+            const { shapeId, corner, initialBounds } = resizeDataRef.current
             const { clientX, clientY } = e.detail
 
             const canvasEl = canvasRef.current
             if (!canvasEl) return
 
             const rect = canvasEl.getBoundingClientRect()
+
             const localX = clientX - rect.left
             const localY = clientY - rect.top
 
-            const world = screenToWorld({
-                x: localX,
-                y: localY
-            }, viewport.translate,
-                viewport.scale)
+            const world = screenToWorld(
+                { x: localX, y: localY },
+                viewport.translate,
+                viewport.scale
+            )
+
             const shape = entityState.entities[shapeId]
             if (!shape) return
 
             const newBounds = { ...initialBounds }
+
             switch (corner) {
                 case 'nw':
-                    newBounds.w = Math.max(10, initialBounds.w + (initialBounds.x - world.x)
-                    )
+                    newBounds.w = Math.max(10, initialBounds.w + (initialBounds.x - world.x))
                     newBounds.h = Math.max(10, initialBounds.h + (initialBounds.y - world.y))
                     newBounds.x = world.x
                     newBounds.y = world.y
@@ -643,6 +666,7 @@ export const useInfiniteCanvas = () => {
                     newBounds.h = Math.max(10, world.y - initialBounds.y)
                     break
             }
+
             if (
                 shape.type === 'frame' ||
                 shape.type === 'rect' ||
@@ -660,109 +684,25 @@ export const useInfiniteCanvas = () => {
                     })
                 )
             }
-            else if (shape.type === 'freedraw') {
-                const xs = shape.points.map((p: { x: number; y: number }) => p.x)
-                const ys = shape.points.map((p: { x: number; y: number }) => p.y)
-                const actualMaxX = Math.max(...xs)
-                const actualMaxY = Math.max(...ys)
-                const actualMinX = Math.min(...xs)
-                const actualMinY = Math.min(...ys)
-                const actualWidth = actualMaxX - actualMinX
-                const actualHeight = actualMaxY - actualMinY
-                const newActualX = newBounds.x + 5 // Remove padding
-                const newActualY = newBounds.y + 5
-                const newActualWidth = Math.max(10, newBounds.w - 10) // Minimum size and remove padding
-                const newActualHeight = Math.max(10, newBounds.h - 10)
-                const scaleX = actualWidth > 0 ? newActualWidth / actualWidth : 1
-                const scaleY = actualHeight > 0 ? newActualHeight / actualHeight : 1
-                const scaledPoints = shape.points.map(
-                    (point: { x: number; y: number }) => ({
-                        x: newActualX + (point.x - actualMinX) * scaleX,
-                        y: newActualY + (point.y - actualMinY) * scaleY,
-                    })
-                )
-                dispatch(
-                    updateShape({
-                        id: shapeId,
-                        patch: {
-                            points: scaledPoints,
-                        },
-                    })
-                )
-            }
-            else if (shape.type === 'line' || shape.type === 'arrow') {
-                const actualMinX = Math.min(shape.startX, shape.endX)
-                const actualMaxX = Math.max(shape.startX, shape.endX)
-                const actualMinY = Math.min(shape.startY, shape.endY)
-                const actualMaxY = Math.max(shape.startY, shape.endY)
-                const actualWidth = actualMaxX - actualMinX
-                const actualHeight = actualMaxY - actualMinY
-
-                const newActualX = newBounds.x + 5
-                const newActualY = newBounds.y + 5
-                const newActualWidth = Math.max(10, newBounds.w - 10)
-                const newActualHeight = Math.max(10, newBounds.h - 10)
-
-                let newStartX, newStartY, newEndX, newEndY
-                if (actualWidth === 0) {
-                    newStartX = newActualX + newActualWidth / 2
-                    newEndX = newActualX + newActualWidth / 2
-                    newStartY =
-                        shape.startY < shape.endY ? newActualY : newActualY + newActualHeight
-                    newEndY =
-                        shape.startY < shape.endY ? newActualY + newActualHeight : newActualY
-
-                }
-                else if (actualHeight === 0) {
-                    newStartY = newActualY + newActualHeight / 2
-                    newEndY = newActualY + newActualHeight / 2
-                    newStartX =
-                        shape.startX < shape.endX ? newActualX : newActualX + newActualWidth
-                    newEndX =
-                        shape.startX < shape.endX ? newActualX + newActualWidth : newActualX
-                }
-                else {
-                    const scaleX = newActualWidth / actualWidth
-                    const scaleY = newActualHeight / actualHeight
-
-                    newStartX = newActualHeight + (shape.startX - actualMinX) * scaleX
-                    newStartY = newActualHeight + (shape.startY - actualMinY) * scaleY
-                    newEndX = newActualHeight + (shape.endX - actualMinX) * scaleX
-                    newEndY = newActualHeight + (shape.endY - actualMinY) * scaleY
-                }
-                dispatch(
-                    updateShape({
-                        id: shapeId,
-                        patch: {
-                            startX: newStartX,
-                            startY: newStartY,
-                            endX: newEndX,
-                            endY: newEndY,
-                        },
-                    })
-                )
-            }
-            const handleResizeEnd = () => {
-                isResizingRef.current = false
-                resizeDataRef.current = null
-            }
-            window.addEventListener('shape-reszie-start', handleResizeStart as EventListener)
-            window.addEventListener('shape-reszie-move', handleResizeMove as EventListener)
-            window.addEventListener('shape-reszie-end', handleResizeEnd as EventListener)
-
-
-            return () => {
-                window.removeEventListener('shape-reszie-start', handleResizeStart as EventListener)
-                window.removeEventListener('shape-reszie-move', handleResizeMove as EventListener)
-                window.removeEventListener('shape-reszie-end', handleResizeEnd as EventListener)
-            }
         }
-    }, [
-        dispatch,
-        entityState.entities,
-        viewport.translate,
-        viewport.scale
-    ])
+
+        const handleResizeEnd = () => {
+            isResizingRef.current = false
+            resizeDataRef.current = null
+        }
+
+        // ✅ LISTENERS GO HERE (NOT INSIDE HANDLER)
+        window.addEventListener('shape-resize-start', handleResizeStart as EventListener)
+        window.addEventListener('shape-resize-move', handleResizeMove as EventListener)
+        window.addEventListener('shape-resize-end', handleResizeEnd as EventListener)
+
+        return () => {
+            window.removeEventListener('shape-resize-start', handleResizeStart as EventListener)
+            window.removeEventListener('shape-resize-move', handleResizeMove as EventListener)
+            window.removeEventListener('shape-resize-end', handleResizeEnd as EventListener)
+        }
+    }, [dispatch, entityState.entities, viewport.translate, viewport.scale])
+
 
     const attachCanvasRef = (ref: HTMLDivElement | null): void => {
         if (canvasRef.current) {
@@ -804,4 +744,39 @@ export const useInfiniteCanvas = () => {
     }
 }
 
+export const useFrame = (shape: FrameShape) => {
+    const dispatch = useAppDispatch()
+    const [isGenerating, setIsGenerating] = useState(false)
+    const allShapes = useAppSelector((state) =>
+        Object.values(state.shapes.shapes?.entities || {}).filter(
+            (shape): shape is Shape => shape !== undefined
+        )
+    )
 
+    const handleGenerateDesign = async () => {
+        try {
+            setIsGenerating(true)
+            const snapshot = await generateFrameSnapshot(shape, allShapes)
+
+            downloadBlob(snapshot, `frame-${shape.frameNumber}-snapshot.png`)
+
+            const formData = new FormData()
+            formData.append('image', snapshot, `frame-${shape.frameNumber}.png`)
+            formData.append('frameNumber', shape.frameNumber.toString())
+
+            const urlParams = new URLSearchParams(window.location.search)
+            const projectId = urlParams.get('project')
+            if (projectId)
+                formData.append('projectId', projectId)
+
+        }
+        catch (error) {
+
+        }
+
+    }
+    return {
+        isGenerating,
+        handleGenerateDesign,
+    }
+}
