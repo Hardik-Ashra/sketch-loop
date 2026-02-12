@@ -1,19 +1,18 @@
-'use client'
+"use client";
 
-import { ReactNode, useRef } from 'react'
-import { Provider } from 'react-redux'
-import { makeStore } from './store'
-import { RootState } from './store'
-
+import { ReactNode, useRef } from "react";
+import { Provider } from "react-redux";
+import { makeStore } from "./store";
+import { RootState } from "./store";
 
 const ReduxProvider = ({
-    children,
-    preloadedState,
+  children,
+  preloadedState,
 }: {
-    children: ReactNode
-    preloadedState?: Partial<RootState>
+  children: ReactNode;
+  preloadedState?: Partial<RootState>;
 }) => {
-    const storeRef = useRef(makeStore(preloadedState))
-    return <Provider store={storeRef.current}> {children} </Provider>
-}
-export default ReduxProvider
+  const storeRef = useRef(makeStore(preloadedState));
+  return <Provider store={storeRef.current}> {children} </Provider>;
+};
+export default ReduxProvider;

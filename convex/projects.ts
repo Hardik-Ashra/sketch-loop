@@ -124,3 +124,30 @@ export const getProjectStyleGuide = query({
     return project.styleGuide ? JSON.parse(project.styleGuide) : null
   }
 })
+
+export const updateProjectSketches = mutation({
+  args: {
+    projectId: v.id("projects"),
+    userId: v.id("users"),
+    sketchesData: v.any(),
+    viewportData: v.optional(v.any()),
+  },
+  handler: async (ctx, { projectId, sketchesData, viewportData }) => {
+    const project = await ctx.db.get(projectId)
+    if (!project) throw new Error('Project not found')
+
+    const updateData: any = {
+      sketchesData,
+      lastModified: Date.now(),
+    }
+
+    if (viewportData) {
+      updateData.viewportData = viewportData
+    }
+
+    await ctx.db.patch(projectId, updateData)
+    console.log("Convex Project updated successfully")
+    return { success: true }
+  }
+
+})
