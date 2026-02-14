@@ -1,22 +1,22 @@
-import { SubscriptionEntitlementQuery } from '@/app/convex/query.config';
-import Navbar from '@/components/navbar/navbar';
-import { combineSlug } from '@/lib/utils';
-import { redirect } from 'next/navigation';
-import React from 'react'
+import { SubscriptionEntitlementQuery } from "@/app/convex/query.config";
+import Navbar from "@/components/navbar/navbar";
+import { combineSlug } from "@/lib/utils";
+import { redirect } from "next/navigation";
+import React from "react";
 type Props = {
-    children: React.ReactNode
-}
+  children: React.ReactNode;
+};
 const Layout = async ({ children }: Props) => {
-    const { profileName, entitlement } = await SubscriptionEntitlementQuery();
-    // if (!entitlement._valueJSON) {
-    //     redirect(`/dashboard/${combineSlug(profileName!)}`);
-    // }
-    return (
-        <div className='grid grid-cols-1'>
-            <Navbar />
-            {children}
-        </div>
-    )
-}
+  const { profileName, entitlement } = await SubscriptionEntitlementQuery();
+  if (!entitlement._valueJSON) {
+    redirect(`/billing/${combineSlug(profileName!)}`);
+  }
+  return (
+    <div className="grid grid-cols-1">
+      <Navbar />
+      {children}
+    </div>
+  );
+};
 
-export default Layout
+export default Layout;

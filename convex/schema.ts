@@ -17,7 +17,7 @@ const schema = defineSchema({
     cancelAt: v.optional(v.number()),
     canceledAt: v.optional(v.number()),
     seats: v.optional(v.number()),
-    metaData: v.optional(v.any()),
+    metadata: v.optional(v.any()),
     creditsBalance: v.number(),
     creditsGrantPerPeriod: v.number(),
     creditsRolloverLimit: v.number(),
