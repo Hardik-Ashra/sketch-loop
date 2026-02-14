@@ -1,5 +1,5 @@
 import { ProjectQuery } from "@/app/convex/query.config";
-import ProjectsProvider from "@/components/projects/list/provider";
+import ProjectsProvider from "@/components/projects/provider";
 import InfinityCanvas from "@/components/canvas";
 import React from "react";
 
@@ -31,9 +31,8 @@ const Page = async ({ searchParams }: CanvasPageProps) => {
       </div>
     );
   }
-
   return (
-    <ProjectsProvider initialProjects={project}>
+    <ProjectsProvider initialProject={project}>
       <InfinityCanvas />
     </ProjectsProvider>
   );

@@ -1,5 +1,8 @@
+"use client";
 import { useAppDispatch } from "@/redux/store";
-import React from "react";
+import React, { useEffect } from "react";
+import { loadProject } from "@/redux/slices/shapes";
+import { restoreViewport } from "@/redux/slices/viewport";
 
 type Props = {
   children: React.ReactNode;
@@ -11,7 +14,7 @@ const ProjectProvider = ({ children, initialProject }: Props) => {
     if (initialProject?._valueJSON?.sketchesData) {
       const projectData = initialProject._valueJSON;
 
-      dispatch(loopProject(projectData.sketchesData));
+      dispatch(loadProject(projectData.sketchesData));
 
       if (projectData.viewportData) {
         dispatch(restoreViewport(projectData.viewportData));
@@ -19,7 +22,7 @@ const ProjectProvider = ({ children, initialProject }: Props) => {
     }
   }, [dispatch, initialProject]);
 
-  return <div>ProjectProvider</div>;
+  return <>{children}</>;
 };
 
 export default ProjectProvider;
