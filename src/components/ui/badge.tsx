@@ -26,6 +26,16 @@ const badgeVariants = cva(
   }
 )
 
+/**
+ * Render a stylable badge element with a selectable visual variant.
+ *
+ * Renders a span by default (or the provided child component when `asChild` is true), applies variant-based classes from `badgeVariants`, sets `data-slot="badge"` and `data-variant`, and forwards remaining props to the rendered element.
+ *
+ * @param className - Additional CSS classes to merge with the variant classes
+ * @param variant - Visual style to apply; one of `"default" | "secondary" | "destructive" | "outline" | "ghost" | "link"`
+ * @param asChild - If `true`, render using the passed child component instead of a `span`
+ * @returns The rendered badge element (type depends on `asChild`)
+ */
 function Badge({
   className,
   variant = "default",

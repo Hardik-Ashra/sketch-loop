@@ -6,6 +6,18 @@ import {
 } from "@polar-sh/sdk/webhooks";
 import { isPolarwebhookEvent, type PolarWebhookEvent } from "@/types/polar";
 
+/**
+ * Handle incoming Polar webhook POST requests: verify signature, validate payload shape,
+ * dispatch a "polar/webhook.received" ingress event for processing, and return an HTTP response.
+ *
+ * @param req - The incoming Next.js request containing the webhook payload and headers
+ * @returns A NextResponse:
+ * - 500 with body "Missing POLAR_WEBHOOK_SECRET" if the webhook secret is not configured
+ * - 403 with body "Invalid signature" if signature verification fails
+ * - 400 with body "Unsupported event shape" if the payload does not match the expected Polar webhook shape
+ * - 500 with body "Failed to process webhook" if dispatching the ingress event fails
+ * - 200 JSON `{ ok: true }` on successful processing
+ */
 export async function POST(req: NextRequest): Promise<NextResponse> {
     const secret = process.env.POLAR_WEBHOOK_SECRET ?? "";
     if (!secret) {

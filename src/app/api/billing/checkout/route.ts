@@ -1,6 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { Polar } from "@polar-sh/sdk"
 
+/**
+ * Creates a Polar checkout session for the provided `userId` and returns the session URL.
+ *
+ * Validates that the `userId` query parameter is present and returns a 400 JSON error if missing.
+ *
+ * @returns A JSON response containing `{ url: string }` on success; a 400 JSON response `{ error: "userId is required" }` if `userId` is missing.
+ */
 export async function GET(req: NextRequest) {
     const { searchParams } = new URL(req.url);
     const userId = searchParams.get("userId");
