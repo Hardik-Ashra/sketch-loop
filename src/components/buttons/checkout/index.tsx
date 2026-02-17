@@ -13,10 +13,10 @@ const SubscribeButton = () => {
       onClick={onSubscribe}
       disabled={isFetching}
       className={cn(
-        "backdrop-blur-xl bg-white/[0.08] border border-white/[0.12]",
+        "backdrop-blur-xl bg-white/8 border border-white/12",
         "saturate-150 rounded-full shadow-xl",
-        "hover:bg-white/[0.12] hover:border-white/[0.16] transition-all duration-200",
-        "active:bg-white/[0.06] active:scale-[0.98]",
+        "hover:bg-white/12 hover:border-white/16 transition-all duration-200",
+        "active:bg-white/6 active:scale-[0.98]",
         "focus:outline-none focus:ring-2 focus:ring-white/20",
         "disabled:opacity-50 disabled:cursor-not-allowed",
         "text-white font-medium text-sm px-6 py-3",

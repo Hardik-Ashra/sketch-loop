@@ -1,7 +1,4 @@
-import {
-  MoodboardImagesQuery,
-  StyleGuideQuery,
-} from "@/app/convex/query.config";
+import { MoodboardImagesQuery, StyleGuideQuery } from "@/convex/query.config";
 import MoodBoard from "@/components/style/mood-board";
 import { ThemeContent } from "@/components/style/theme";
 import StyleGuideTypography from "@/components/style/typography";
