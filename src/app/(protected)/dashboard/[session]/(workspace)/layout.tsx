@@ -1,4 +1,4 @@
-import { SubscriptionEntitlementQuery } from "@/app/convex/query.config";
+import { SubscriptionEntitlementQuery } from "@/convex/query.config";
 import Navbar from "@/components/navbar/navbar";
 import { combineSlug } from "@/lib/utils";
 import { redirect } from "next/navigation";

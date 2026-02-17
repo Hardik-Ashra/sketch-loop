@@ -1,4 +1,4 @@
-import { ProjectQuery } from "@/app/convex/query.config";
+import { ProjectQuery } from "@/convex/query.config";
 import ProjectsProvider from "@/components/projects/provider";
 import InfinityCanvas from "@/components/canvas";
 import React from "react";

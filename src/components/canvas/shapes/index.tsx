@@ -7,6 +7,7 @@ import { Stroke } from "./stroke";
 import { Elipse } from "./elipse";
 import { Frame } from "./frame";
 import { Rectangle } from "./rectangle";
+import GeneratedUI from "./generatedUi";
 
 const ShapeRenderer = ({
   shape,
@@ -36,6 +37,17 @@ const ShapeRenderer = ({
       return <Line shape={shape} />;
     case "text":
       return <Text shape={shape} />;
+    case "generatedui":
+      return (
+        <GeneratedUI
+          shape={shape}
+          toggleChat={toggleChat}
+          generateWorkflow={generateWorkflow}
+          // exportDesign={exportDesign}
+        />
+      );
+    default:
+      return null;
   }
 };
 

@@ -4,9 +4,9 @@ import "./globals.css";
 import { ThemeProvider } from "@/theme/provider";
 import { Toaster } from "sonner";
 import { ConvexAuthNextjsServerProvider } from "@convex-dev/auth/nextjs/server";
-import { ConvexClientProvider } from "./convex/provider";
+import { ConvexClientProvider } from "@/convex/provider";
 import ReduxProvider from "@/redux/provider";
-import { ProfileQuery } from "./convex/query.config";
+import { ProfileQuery } from "@/convex/query.config";
 import { ConvexUserRaw, normalizeProfile } from "@/types/user";
 
 const geistSans = Geist({
