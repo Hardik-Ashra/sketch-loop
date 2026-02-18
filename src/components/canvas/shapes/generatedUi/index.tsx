@@ -8,21 +8,36 @@ type Props = {
   shape: GeneratedUIShape;
   toggleChat: (generatedUIId: string) => void;
   generateWorkflow: (generatedUIId: string) => void;
-  // exportDesign: (generatedUIId: string, element: HTMLElement | null) => void;
+  exportDesign: (generatedUIId: string, element: HTMLElement | null) => void;
 };
 
 const GeneratedUI = ({
   shape,
   toggleChat,
   generateWorkflow,
-  // exportDesign,
+  exportDesign,
 }: Props) => {
-  const handleExportDesign = () => {
+  const handleExportDesign = async () => {
     if (!shape.uiSpecData) {
       console.warn("No UI data to export");
       return;
     }
-    // exportDesign(shape.id, containerRef.current);
+
+    // ⭐ wait for next paint so ref is guaranteed mounted
+    await new Promise(requestAnimationFrame);
+
+    if (!containerRef.current) {
+      console.warn("Container ref is null — trying DOM fallback");
+
+      const fallback = document.querySelector(
+        `[data-generated-ui-id="${shape.id}"]`,
+      ) as HTMLElement | null;
+
+      exportDesign(shape.id, fallback);
+      return;
+    }
+
+    exportDesign(shape.id, containerRef.current);
   };
 
   const handleToggleChat = () => {
@@ -62,7 +77,7 @@ const GeneratedUI = ({
           }}
         >
           <div className="absolute -top-8 right-0 flex gap-2">
-            {/* <LiquidGlassButton
+            <LiquidGlassButton
               size="sm"
               variant="subtle"
               onClick={handleExportDesign}
@@ -71,9 +86,7 @@ const GeneratedUI = ({
             >
               <Download size={12} />
               Export
-              <Workflow size={12} />
-              Generate Workflow
-            </LiquidGlassButton> */}
+            </LiquidGlassButton>
             <LiquidGlassButton
               size="sm"
               variant="subtle"

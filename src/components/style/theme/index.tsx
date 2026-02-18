@@ -71,9 +71,9 @@ export const ThemeContent = ({ colorGuide }: ThemeContentProps) => {
 
   return (
     <div className="flex flex-col gap-10">
-      {sections.map((section) => (
+      {sections.map((section, index) => (
         <ColorTheme
-          key={section.title}
+          key={`${section.title}-${index}`}
           title={section.title}
           swatches={section.swatches}
         />

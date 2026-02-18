@@ -73,37 +73,6 @@ const InspirationSidebar = ({ isOpen, onClose }: InspirationSidebarProps) => {
     }
   }, []);
 
-  //   const uploadImage = useCallback(
-  //     async (file: File): Promise<{ storageId: string }> => {
-  //       try {
-  //         console.log("FILE:", file.type);
-  //         const uploadUrl = await generateUploadUrl();
-  //         const result = await fetch(uploadUrl, {
-  //           method: "PUT",
-  //           headers: {
-  //             "Content-Type": file.type,
-  //           },
-  //           body: file,
-  //         });
-  //         if (!result.ok) {
-  //           throw new Error(`Upload failed: ${result.statusText}`);
-  //         }
-
-  //         const storageId = await result.json();
-  //         if (projectId) {
-  //           await addInspirationImage({
-  //             projectId: projectId as Id<"projects">,
-  //             storageId: storageId as Id<"_storage">,
-  //           });
-  //         }
-  //         return { storageId };
-  //       } catch (uploadError) {
-  //         throw uploadError;
-  //       }
-  //     },
-  //     [generateUploadUrl, addInspirationImage, projectId],
-  //   );
-
   const uploadImage = useCallback(
     async (file: File): Promise<{ storageId: string }> => {
       try {
@@ -252,28 +221,31 @@ const InspirationSidebar = ({ isOpen, onClose }: InspirationSidebarProps) => {
   return (
     <div
       className={cn(
-        "fixed left-5 top-1/2 transform -translate-y-1/2 w-80 backdrop-blur-xl bg-white/8 border-white/12 gap-2 p-3 saturate-150 border rounded-lg z-50 transition-transformduration-300",
+        "fixed left-5 top-1/2 -translate-y-1/2 w-80 backdrop-blur-xl bg-white/8 border-white/12 gap-2 p-3 saturate-150 border rounded-lg z-50 transition-all duration-300",
+        isOpen
+          ? "translate-x-0 opacity-100 pointer-events-auto"
+          : "-translate-x-[120%] opacity-0 pointer-events-none",
       )}
     >
       <div className="p-4 flex flex-col gap-4 overflow-y-auto max-h-[calc(100vh-8rem)]">
         <div className="flex items-center justify-between">
           <ImageIcon className="w-5 h-5 text-white/80" />
           <Label className="text-white/80 font-medium">Inspiration Board</Label>
+          <Button
+            variant={"ghost"}
+            size={"sm"}
+            onClick={onClose}
+            className="h-8 w-8 p-0 text-white/60 hover:text-white hover:bg-white/12"
+          >
+            <X className="w-4 h-4" />
+          </Button>
         </div>
-        <Button
-          variant={"ghost"}
-          size={"sm"}
-          onClick={onClose}
-          className="h-8 w-8 p-0 text-white/60 hover:text-white hover:bg-white/12"
-        >
-          <X className="w-4 h-4" />
-        </Button>
       </div>
       <div
         className={cn(
           "border-2 border-dashed rounded-lg p-6 text-center transition-all duration-200 cursor-pointer",
           dragActive
-            ? "border-blue-400 Obg-blue-500/10"
+            ? "border-blue-400 bg-blue-500/10"
             : images.length < 6
               ? "border-white/20 hover:border-white/40 hover:bg-white/5"
               : "border-white/10 bg-white/5 cursor-not-allowed opacity-50",
@@ -294,7 +266,7 @@ const InspirationSidebar = ({ isOpen, onClose }: InspirationSidebarProps) => {
         />
         <div className="flex flex-col items-center gap-2">
           <Upload className="w-8 h-8 text-white/40" />
-          <p className="text-sm [text-white/60">
+          <p className="text-sm text-white/60">
             {images.length < 6 ? (
               <>
                 Drop images here or{" "}
@@ -359,7 +331,7 @@ const InspirationSidebar = ({ isOpen, onClose }: InspirationSidebarProps) => {
                   size="sm"
                   onClick={() => removeImage(image.id)}
                   className="absolute top-1 right-1 h-6 w-6 p-0 bg-black/50
-                   hover:bg-black/70 opacity-0 group-hover: opacity-100 transition-opacity"
+                   hover:bg-black/70 opacity-0 group-hover:opacity-100 transition-opacity"
                 >
                   <X className="w-3 h-3 text-white" />
                 </Button>
@@ -373,7 +345,7 @@ const InspirationSidebar = ({ isOpen, onClose }: InspirationSidebarProps) => {
 hover:border-white/40 hover:bg-white/10 transition-all duration-200 flex items-center
 justify-center group"
               >
-                <Plus className="w-6 h-6 text-white/40group-hover:text-white/60" />
+                <Plus className="w-6 h-6 text-white/40 group-hover:text-white/60" />
               </button>
             )}
           </div>

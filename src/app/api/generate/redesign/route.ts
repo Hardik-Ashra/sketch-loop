@@ -61,12 +61,71 @@ export async function POST(request: NextRequest) {
 
         let userPrompt = `Please redesign this UI based on my request: "${userMessage}"`;
 
-        userPrompt += `\n\nWireframe Context: I'm providing a wireframe image that shows the EXACT original design layout and structure that this UI was generated from. This wireframe represents the specific frame that was used to create the current design. Please use this as visual context to understand the intended layout, structure, and design elements when making improvements. The wireframe shows the original wireframe/mockup that the user drew or created.`;
+        if (currentHTML) {
+            userPrompt += `\n\nCurrent HTML for reference:\n${currentHTML.substring(
+                0,
+                1000
+            )}...`;
+        }
+        if (wireframeSnapshot) {
+            userPrompt += `\n\nWireframe Context: I'm providing a wireframe image that shows the EXACT original design layout and structure that this UI was generated from. This wireframe represents the specific frame that was used to create the current design. Please use this as visual context to understand the intended layout, structure, and design elements when making improvements. The wireframe shows the original wireframe/mockup that the user drew or created.`;
+            console.log("Using wireframe context for redesign")
+        }
+        else {
+            console.log("No wireframe context for redesign")
+        }
 
-        userPrompt += `\n\nCurrent HTML for reference:\n${currentHTML.substring(
-            0,
-            1000
-        )}...`;
+        if (colors.length > 0) {
+            userPrompt += `\n\nStyle Guide Colors:\n${(
+                colors as Array<{
+                    swatches: Array<{
+                        name: string;
+                        hexColor: string;
+                        description: string;
+                    }>;
+                }>
+            )
+                .map((color) =>
+                    color.swatches
+                        .map(
+                            (swatch) =>
+                                `${swatch.name}: ${swatch.hexColor}, ${swatch.description}`
+                        )
+                        .join(", ")
+                )
+                .join(", ")}`;
+        }
+
+        if (typography.length > 0) {
+            userPrompt += `\n\nTypography:\n${(
+                typography as Array<{
+                    styles: Array<{
+                        name: string;
+                        description: string;
+                        fontFamily: string;
+                        fontWeight: string;
+                        fontSize: string;
+                        lineHeight: string;
+                    }>;
+                }>
+            )
+                .map((typo) =>
+                    typo.styles
+                        .map(
+                            (style) =>
+                                `${style.name}: ${style.description}, ${style.fontFamily}, ${style.fontWeight}, ${style.fontSize}, ${style.lineHeight}`
+                        )
+                        .join(", ")
+                )
+                .join(", ")}`;
+        }
+
+        if (imageUrls.length > 0) {
+            userPrompt += `\n\nInspiration Images Available: ${imageUrls.length} reference images for visual style and inspiration.`;
+        }
+        userPrompt += `\n\nPlease generate a completely new HTML design based on my request while following
+the style guide, maintaining professional quality, and considering the wireframe context for layout
+understanding.`;
         // Create streaming response for workflow page generation
         const result = streamText({
             model: google('gemini-2.0-flash'),
@@ -77,7 +136,7 @@ export async function POST(request: NextRequest) {
                         {
                             type: 'text',
                             text: userPrompt,
-                        },
+                        }, { type: 'image', image: wireframeSnapshot }
                     ]
                 }
             ],

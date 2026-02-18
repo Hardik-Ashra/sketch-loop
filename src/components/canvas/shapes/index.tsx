@@ -43,7 +43,7 @@ const ShapeRenderer = ({
           shape={shape}
           toggleChat={toggleChat}
           generateWorkflow={generateWorkflow}
-          // exportDesign={exportDesign}
+          exportDesign={exportDesign}
         />
       );
     default:
