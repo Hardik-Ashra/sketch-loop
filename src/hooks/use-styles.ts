@@ -220,6 +220,7 @@ export const useMoodBoard = (guideImages: MoodboardImage[]) => {
           image.uploaded ||
           image.uploading ||
           image.error ||
+          !image.file || // ✅ Prevent undefined file upload
           uploadingIdsRef.current.has(image.id)
         ) continue;
 
@@ -235,7 +236,7 @@ export const useMoodBoard = (guideImages: MoodboardImage[]) => {
         }
 
         try {
-          const { storageId } = await uploadImage(image.file!);
+          const { storageId } = await uploadImage(image.file);
           const after = getValues("images");
           const fi = after.findIndex((img) => img.id === image.id);
           if (fi !== -1) {
@@ -297,7 +298,13 @@ export const useStyleGuide = (
 ) => {
   const [generateStyleGuide, { isLoading: isGenerating }] = useGenerateStyleGuideMutation();
   const router = useRouter();
+  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
 
+  useEffect(() => {
+    return () => {
+      if (timeoutRef.current) clearTimeout(timeoutRef.current);
+    };
+  }, []);
   const handleUploadClick = useCallback(() => fileInputRef.current?.click(), [fileInputRef]);
 
   const handleGenerateStyleGuide = useCallback(async () => {
@@ -334,13 +341,11 @@ export const useStyleGuide = (
 
       // FIX #10 – Store timeout id so it can be cleared if the component
       // unmounts before it fires (prevents state update on unmounted component).
-      const t = setTimeout(() => {
+      timeoutRef.current = setTimeout(() => {
         toast.success("Style guide generated! Switch to the Colours tab to see the results", {
           duration: 5000,
         });
       }, 1000);
-
-      return () => clearTimeout(t);
     } catch (error) {
       const errorMessage =
         error && typeof error === "object" && "error" in error
@@ -366,8 +371,9 @@ const SANITIZE_PATTERNS: [RegExp, string][] = [
   [/<iframe\b[^<]*(?:(?!<\/iframe>)<[^<]*)*<\/iframe>/gi, ""],
   [/\son\w+="[^"]*"/gi, ""],
   [/javascript:/gi, ""],
-  [/data:/gi, ""],
+  [/\s(src|href)=["']data:[^"']*["']/gi, ""],
 ];
+
 
 export const useUpdateContainer = (shape: GeneratedUIShape) => {
   const dispatch = useAppDispatch();

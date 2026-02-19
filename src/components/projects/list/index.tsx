@@ -60,7 +60,7 @@ const ProjectsList = () => {
           {projects.map((project: any) => (
             <Link
               key={project._id}
-              href={`/dashboard/${username}/canvas?project=${project._id}`}
+              href={`/dashboard/${username ?? ""}/canvas?project=${project._id}`}
               className="group cursor-pointer"
             >
               <div className="space-y-3">
@@ -74,7 +74,7 @@ const ProjectsList = () => {
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200"
                     />
                   ) : (
-                    <div className="w-full h-full bg-linear-to-br from-gray-100 to-gray-200 flex items-center justify-center">
+                    <div className="w-full h-full bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center">
                       <Plus className="w-8 h-8 text-gray-400" />
                     </div>
                   )}

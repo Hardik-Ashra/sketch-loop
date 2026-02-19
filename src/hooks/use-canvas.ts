@@ -20,7 +20,7 @@ import {
     initializeChat, startStreamingResponse, updateStreamingContent
 } from "@/redux/slices/chat";
 import { selectAllShapes } from "@/redux/selectors/selector";
-import { err } from "inngest/types";
+
 interface TouchPointer {
     id: number
     p: Point
@@ -86,7 +86,7 @@ export const useInfiniteCanvas = () => {
     const touchMapRef = useRef<Map<number, TouchPointer>>(new Map())
     const draftShapeRef = useRef<DraftShape | null>(null)
     const freeDrawPointsRef = useRef<Point[]>([])
-    const isSpacePressed = useRef(false)
+    const isShiftPressed = useRef(false)
     const isDrawingRef = useRef(false)
     const isMovingRef = useRef(false)
     const moveStartRef = useRef<Point | null>(null)
@@ -307,10 +307,10 @@ export const useInfiniteCanvas = () => {
             if (touchMapRef.current.size <= 1) {
                 canvasRef.current?.setPointerCapture?.(e.pointerId)
                 const isPanButton = e.button === 1 || e.button === 2
-                const panByShift = isSpacePressed.current && e.button === 0
+                const panByShift = isShiftPressed.current && e.button === 0
 
                 if (isPanButton || panByShift) {
-                    const mode = isSpacePressed.current ? 'shiftPanning' : 'panning'
+                    const mode = isShiftPressed.current ? 'shiftPanning' : 'panning'
                     dispatch(panStart({ screen: local, mode }))
                     return
                 }
@@ -522,14 +522,14 @@ export const useInfiniteCanvas = () => {
         const onKeyDown = (e: KeyboardEvent): void => {
             if ((e.code === 'ShiftLeft' || e.code === 'ShiftRight') && !e.repeat) {
                 e.preventDefault()
-                isSpacePressed.current = true
+                isShiftPressed.current = true
                 dispatch(handToolEnable())
             }
         }
         const onKeyUp = (e: KeyboardEvent): void => {
             if (e.code === 'ShiftLeft' || e.code === 'ShiftRight') {
                 e.preventDefault()
-                isSpacePressed.current = false
+                isShiftPressed.current = false
                 dispatch(handToolDisable())
             }
         }
@@ -1030,11 +1030,11 @@ export const useChatWindow = (generatedUIId: string, isOpen: boolean) => {
                 const sourceFrame = getSourceFrame()
                 if (sourceFrame) {
                     try {
-                        // AFTER — one memoized selector, already an array, no inline transform needed
-                        const allShapes = useAppSelector(selectAllShapes)
-                        // ...later...
-                        // just use allShapes directly — it's already a Shape[]
-                        const snapshot = await generateFrameSnapshot(sourceFrame, allShapes)
+                        // Use allShapes from component scope (line 972)
+                        const shapesArray = Object.values(allShapes).filter(
+                            (s): s is Shape => s !== undefined
+                        )
+                        const snapshot = await generateFrameSnapshot(sourceFrame, shapesArray)
                         const buffer = await snapshot.arrayBuffer()
                         wireframeSnapshot = `data:image/png;base64,${Buffer.from(buffer).toString('base64')}`
                     } catch (err) {

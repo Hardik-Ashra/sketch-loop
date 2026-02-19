@@ -46,9 +46,10 @@ const Navbar = () => {
   const hasCanvas = pathname.includes("canvas");
   const hasStyleGuide = pathname.includes("style-guide");
 
-  const creditBalance = useQuery(api.subscription.getCreditsBalance, {
-    userId: me.id as Id<"users">,
-  });
+  const creditBalance = useQuery(
+    api.subscription.getCreditsBalance,
+    me.id ? { userId: me.id as Id<"users"> } : "skip",
+  );
 
   return (
     <div
@@ -102,7 +103,11 @@ const Navbar = () => {
       )}
 
       <div className="flex items-center justify-end gap-4">
-        <span className="text-sm text-white/50">{creditBalance} credits</span>
+        <span className="text-sm text-white/50">
+          {creditBalance !== undefined
+            ? `${creditBalance} credits`
+            : "– credits"}
+        </span>
         <Button
           variant={"secondary"}
           className="rounded-full h-12 w-12 flex items-center justify-center backdrop-blur-xl bg-white/8 border border-white/12 saturate-150 hover:bg-white/12"

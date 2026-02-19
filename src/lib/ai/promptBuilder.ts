@@ -7,22 +7,22 @@
  */
 
 type StyleColorSection = {
-    swatches: {
-        name: string;
-        hexColor: string;
-        description?: string;
-    }[];
+  swatches: {
+    name: string;
+    hexColor: string;
+    description?: string;
+  }[];
 };
 
 type TypographySection = {
-    styles: {
-        name: string;
-        description?: string;
-        fontFamily: string;
-        fontWeight: string;
-        fontSize: string;
-        lineHeight: string;
-    }[];
+  styles: {
+    name: string;
+    description?: string;
+    fontFamily: string;
+    fontWeight: string;
+    fontSize: string;
+    lineHeight: string;
+  }[];
 };
 
 /**
@@ -32,24 +32,24 @@ type TypographySection = {
  */
 
 function formatColors(colors: StyleColorSection[] = []) {
-    return colors
-        .flatMap((c) =>
-            c.swatches.map(
-                (s) => `• ${s.name}: ${s.hexColor}${s.description ? ` — ${s.description}` : ""}`
-            )
-        )
-        .join("\n");
+  return colors
+    .flatMap((c) =>
+      c.swatches.map(
+        (s) => `• ${s.name}: ${s.hexColor}${s.description ? ` — ${s.description}` : ""}`
+      )
+    )
+    .join("\n");
 }
 
 function formatTypography(typography: TypographySection[] = []) {
-    return typography
-        .flatMap((t) =>
-            t.styles.map(
-                (s) =>
-                    `• ${s.name}: ${s.fontFamily} ${s.fontWeight} ${s.fontSize}/${s.lineHeight}${s.description ? ` — ${s.description}` : ""}`
-            )
-        )
-        .join("\n");
+  return typography
+    .flatMap((t) =>
+      t.styles.map(
+        (s) =>
+          `• ${s.name}: ${s.fontFamily} ${s.fontWeight} ${s.fontSize}/${s.lineHeight}${s.description ? ` — ${s.description}` : ""}`
+      )
+    )
+    .join("\n");
 }
 
 /**
@@ -58,14 +58,14 @@ function formatTypography(typography: TypographySection[] = []) {
  * =========================================================
  */
 export function buildWorkflowPrompt({
-    currentHTML,
-    selectedPageType,
-    colors,
-    typography,
-    imageCount,
+  currentHTML,
+  selectedPageType,
+  colors,
+  typography,
+  imageCount,
 }: any) {
-    // Gemini: no truncation — model has 1M token window, truncating loses visual context
-    let prompt = `<role>
+  // Gemini: no truncation — model has 1M token window, truncating loses visual context
+  let prompt = `<role>
 You are a senior UI engineer specialising in design systems and multi-page web applications.
 </role>
 
@@ -87,19 +87,25 @@ Step 2 — STRUCTURE the new page.
 
 Step 3 — APPLY style tokens (these take highest priority over Step 1 inferences).`;
 
-    if (colors?.length) {
-        prompt += `\n<style_tokens>\n<colors>\n${formatColors(colors)}\n</colors>`;
+  if (colors?.length) {
+    prompt += `\n<style_tokens>\n<colors>\n${formatColors(colors)}\n</colors>`;
+    if (!typography?.length) {
+      prompt += `\n</style_tokens>`;
     }
+  }
 
-    if (typography?.length) {
-        prompt += `\n<typography>\n${formatTypography(typography)}\n</typography>\n</style_tokens>`;
+  if (typography?.length) {
+    if (!colors?.length) {
+      prompt += `\n<style_tokens>`;
     }
+    prompt += `\n<typography>\n${formatTypography(typography)}\n</typography>\n</style_tokens>`;
+  }
 
-    if (imageCount) {
-        prompt += `\n  • ${imageCount} inspiration image(s) available — map them to image slots in order.`;
-    }
+  if (imageCount) {
+    prompt += `\n  • ${imageCount} inspiration image(s) available — map them to image slots in order.`;
+  }
 
-    prompt += `
+  prompt += `
 
 Step 4 — VERIFY before outputting.
   ✅ Every section has py-16 px-6 minimum (no py-8, py-12)
@@ -115,7 +121,7 @@ Step 4 — VERIFY before outputting.
 Return ONLY the HTML wrapped in <div data-generated-ui>. No explanations. No markdown fences.
 </output_contract>`;
 
-    return prompt;
+  return prompt;
 }
 
 /**
@@ -124,14 +130,14 @@ Return ONLY the HTML wrapped in <div data-generated-ui>. No explanations. No mar
  * =========================================================
  */
 export function buildRedesignPrompt({
-    userMessage,
-    currentHTML,
-    colors,
-    typography,
-    hasWireframe,
-    imageCount,
+  userMessage,
+  currentHTML,
+  colors,
+  typography,
+  hasWireframe,
+  imageCount,
 }: any) {
-    let prompt = `<role>
+  let prompt = `<role>
 You are a senior UI engineer making targeted changes to an existing UI based on a user request.
 </role>
 
@@ -139,16 +145,16 @@ You are a senior UI engineer making targeted changes to an existing UI based on 
 ${userMessage}
 </user_request>`;
 
-    if (currentHTML) {
-        // Gemini: pass full HTML, no substring truncation
-        prompt += `\n\n<current_html>\n${currentHTML}\n</current_html>`;
-    }
+  if (currentHTML) {
+    // Gemini: pass full HTML, no substring truncation
+    prompt += `\n\n<current_html>\n${currentHTML}\n</current_html>`;
+  }
 
-    if (hasWireframe) {
-        prompt += `\n\n<wireframe_context>A wireframe image has been provided. Use it to understand the intended layout structure.</wireframe_context>`;
-    }
+  if (hasWireframe) {
+    prompt += `\n\n<wireframe_context>A wireframe image has been provided. Use it to understand the intended layout structure.</wireframe_context>`;
+  }
 
-    prompt += `\n\n<task>
+  prompt += `\n\n<task>
 Step 1 — INTERPRET the user request literally and completely.
   • Identify every explicit change requested.
   • Do NOT make changes the user did not ask for.
@@ -158,19 +164,19 @@ Step 2 — PRESERVE everything not mentioned.
 
 Step 3 — APPLY style tokens (mandatory — do not derive colors from context).`;
 
-    if (colors?.length) {
-        prompt += `\n<style_tokens>\n<colors>\n${formatColors(colors)}\n</colors>`;
-    }
+  if (colors?.length) {
+    prompt += `\n<style_tokens>\n<colors>\n${formatColors(colors)}\n</colors>`;
+  }
 
-    if (typography?.length) {
-        prompt += `\n<typography>\n${formatTypography(typography)}\n</typography>\n</style_tokens>`;
-    }
+  if (typography?.length) {
+    prompt += `\n<typography>\n${formatTypography(typography)}\n</typography>\n</style_tokens>`;
+  }
 
-    if (imageCount) {
-        prompt += `\n  • ${imageCount} inspiration image(s) available for image slots.`;
-    }
+  if (imageCount) {
+    prompt += `\n  • ${imageCount} inspiration image(s) available for image slots.`;
+  }
 
-    prompt += `
+  prompt += `
 
 Step 4 — VERIFY spacing and color compliance.
   ✅ Sections: py-16 px-6 minimum
@@ -185,7 +191,7 @@ Step 4 — VERIFY spacing and color compliance.
 Return ONLY the complete redesigned HTML wrapped in <div data-generated-ui>. No explanations. No markdown.
 </output_contract>`;
 
-    return prompt;
+  return prompt;
 }
 
 /**
@@ -194,12 +200,12 @@ Return ONLY the complete redesigned HTML wrapped in <div data-generated-ui>. No 
  * =========================================================
  */
 export function buildWorkflowRedesignPrompt({
-    userMessage,
-    currentHTML,
-    colors,
-    typography,
+  userMessage,
+  currentHTML,
+  colors,
+  typography,
 }: any) {
-    return `<role>
+  return `<role>
 You are a senior UI engineer making surgical edits to a workflow page. Minimum change to satisfy the request.
 </role>
 
@@ -237,7 +243,7 @@ Return ONLY the modified HTML. Same outer structure. No explanations.
  * =========================================================
  */
 export function buildStyleGuidePrompt(imageCount: number) {
-    return `<role>
+  return `<role>
 You are a design-system engineer. Analyse moodboard images and produce a precise design token specification as JSON.
 </role>
 
@@ -281,13 +287,13 @@ Must include: { success: true, ...allTokens }
  * =========================================================
  */
 export function buildSketchGenerationPrompt({
-    colors,
-    typography,
+  colors,
+  typography,
 }: any) {
-    // FIX: original had local formatColors/formatTypography that shadowed the
-    // module-level helpers with identical logic — a silent copy-paste bug.
-    // Now uses the shared helpers directly.
-    return `<role>
+  // FIX: original had local formatColors/formatTypography that shadowed the
+  // module-level helpers with identical logic — a silent copy-paste bug.
+  // Now uses the shared helpers directly.
+  return `<role>
 You are a design engineer that converts wireframe sketches into production-ready HTML.
 You are provided a wireframe image and a style guide. Both are mandatory inputs.
 </role>
