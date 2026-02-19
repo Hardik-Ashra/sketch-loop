@@ -1,9 +1,8 @@
 import { getAuthUserId } from "@convex-dev/auth/server";
-import { queryGeneric } from "convex/server";
 import { query } from "./_generated/server";
 import { v } from "convex/values";
 
-export const getCurrentUser = queryGeneric({
+export const getCurrentUser = query({
     args: {},
     handler: async (ctx) => {
         const userId = await getAuthUserId(ctx)

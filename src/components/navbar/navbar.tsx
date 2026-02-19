@@ -23,7 +23,6 @@ const Navbar = () => {
 
   const pathname = usePathname();
 
-  //Todo:add credits logic
   const me = useAppSelector((state) => state.profile);
 
   const tabs: TabsProps[] = [
@@ -38,17 +37,23 @@ const Navbar = () => {
       icon: <LayoutTemplate className="h-4 w-4" />,
     },
   ];
+
   const project = useQuery(
     api.projects.getProject,
     projectId ? { projectId: projectId as Id<"projects"> } : "skip",
   );
+
   const hasCanvas = pathname.includes("canvas");
   const hasStyleGuide = pathname.includes("style-guide");
+
   const creditBalance = useQuery(api.subscription.getCreditsBalance, {
     userId: me.id as Id<"users">,
   });
+
   return (
-    <div className="grid grid-cols-2 lg:grid-cols-3 p-6 fixed top-0 left-0 right-0 z-50">
+    <div
+      className={`grid p-6 fixed top-0 left-0 right-0 z-50 ${projectId ? "grid-cols-2 lg:grid-cols-3" : "grid-cols-2"}`}
+    >
       <div className="flex items-center gap-4">
         <Link
           href={`/dashboard/${me.name}`}
@@ -64,33 +69,38 @@ const Navbar = () => {
           ))}
       </div>
 
-      <div className="lg:flex hidden items-center justify-center gap-2">
-        <div className="flex items-center gap-2 backdrop-blur-xl bg-white/8 border border-white/12 p-2 rounded-full saturate-150">
-          {tabs.map((t) => (
-            <Link
-              key={t.href}
-              href={t.href}
-              className={[
-                "group inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm transition",
-                `${pathname}?project=${projectId}` === t.href
-                  ? `bg-white/12 text-white border border-white/16 backdrop-blur-xm`
-                  : "text-zinc-400 hover:text-zinc-200 hover:bg-white/6 border border-transparent",
-              ].join(" ")}
-            >
-              <span
-                className={
+      {/* FIX – only render tabs when inside a project (projectId exists).
+          No design changes — same classes, same structure, just conditionally rendered. */}
+      {projectId && (
+        <div className="lg:flex hidden items-center justify-center gap-2">
+          <div className="flex items-center gap-2 backdrop-blur-xl bg-white/8 border border-white/12 p-2 rounded-full saturate-150">
+            {tabs.map((t) => (
+              <Link
+                key={t.href}
+                href={t.href}
+                className={[
+                  "group inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm transition",
                   `${pathname}?project=${projectId}` === t.href
-                    ? `opacity-100`
-                    : "opacity-70 group-hover:opacity-90"
-                }
+                    ? `bg-white/12 text-white border border-white/16 backdrop-blur-xm`
+                    : "text-zinc-400 hover:text-zinc-200 hover:bg-white/6 border border-transparent",
+                ].join(" ")}
               >
-                {t.icon}
-              </span>
-              <span>{t.label}</span>
-            </Link>
-          ))}
+                <span
+                  className={
+                    `${pathname}?project=${projectId}` === t.href
+                      ? `opacity-100`
+                      : "opacity-70 group-hover:opacity-90"
+                  }
+                >
+                  {t.icon}
+                </span>
+                <span>{t.label}</span>
+              </Link>
+            ))}
+          </div>
         </div>
-      </div>
+      )}
+
       <div className="flex items-center justify-end gap-4">
         <span className="text-sm text-white/50">{creditBalance} credits</span>
         <Button

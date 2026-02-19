@@ -32,14 +32,14 @@ export const ColorTheme = ({ title, swatches, className }: ColorThemeProps) => {
 
       {/* Swatch Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-5">
-        {swatches.map((swatch) => (
+        {swatches.map((swatch, index) => (
           <div
-            key={swatch.name}
+            key={`${swatch.hexColor}-${index}`}
             className="
-              group rounded-xl border bg-card
-              p-4 transition-all duration-200
-              hover:shadow-md hover:border-primary/40
-            "
+      group rounded-xl border bg-card
+      p-4 transition-all duration-200
+      hover:shadow-md hover:border-primary/40
+    "
           >
             <ColorSwatch name={swatch.name} value={swatch.hexColor} />
 
