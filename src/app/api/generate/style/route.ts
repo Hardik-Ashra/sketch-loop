@@ -160,7 +160,7 @@ export async function POST(request: NextRequest) {
         const base64Images = await Promise.all(imageUrls.map(urlToBase64))
 
         const result = await generateStyleGuideSafe({
-            model: google("gemini-2.0-flash"),
+            model: google("gemini-2.5-pro"),
             schema: StyleGuideSchema,
             system: prompts.styleGuide.system,
             messages: [{

@@ -44,7 +44,7 @@ export async function POST(request: NextRequest) {
         });
 
         const result = streamText({
-            model: google("gemini-2.0-flash"),
+            model: google("gemini-2.5-pro"),
             system: prompts.generativeUi.system,
             messages: [{
                 role: "user",
