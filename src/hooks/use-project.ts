@@ -53,21 +53,22 @@ export const useProjectCreation = () => {
             // ✅ Single timestamp — createdAt and lastModified are guaranteed identical
             const now = Date.now()
 
-            dispatch(addProject({
-                _id: result.projectId,
-                name: result.name,
-                projectNumber: result.projectNumber,
-                thumbnail,
-                lastModified: now,
-                createdAt: now,
-                isPublic: false,
-            }))
+            // dispatch(addProject({
+            //     _id: result.projectId,
+            //     name: result.name,
+            //     projectNumber: result.projectNumber,
+            //     thumbnail,
+            //     lastModified: now,
+            //     createdAt: now,
+            //     isPublic: false,
+            // }))
 
             dispatch(createProjectSuccess())
-            toast.success('Project created! Taking you there now...')
-
             // ✅ Navigate directly into the new project
             router.push(`/dashboard/${username}/canvas?project=${result.projectId}`)
+            toast.success('Project created!')
+
+
 
             return result.projectId
 
