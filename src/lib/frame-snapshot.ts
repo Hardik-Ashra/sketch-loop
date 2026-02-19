@@ -57,11 +57,6 @@ export const getShapesInsideFrame = (shapes: Shape[], frame: FrameShape): Shape[
   const shapesInFrame = shapes.filter(
     (shape) => shape.id !== frame.id && isShapeInsideFrame(shape, frame)
   );
-  console.log(`Frame ${frame.frameNumber} capture:`, {
-    totalShapes: shapes.length,
-    captured: shapesInFrame.length,
-    capturedTypes: shapesInFrame.map((s) => s.type),
-  });
   return shapesInFrame;
 };
 
