@@ -47,12 +47,12 @@ export const useProjectCreation = () => {
                 userId: userId as Id<'users'>,
                 // ✅ trim() rejects whitespace-only strings like "   "
                 name: name?.trim() || undefined,
-                sketchesData: JSON.parse(JSON.stringify({
-                    shapes,
-                    tool,
-                    selected,
-                    frameCounter,
-                })),
+                sketchesData: {
+                    shapes: { ids: [], entities: {} },
+                    tool: "select",
+                    selected: {},
+                    frameCounter: 0,
+                },
                 thumbnail,
             })
             console.log("Redux shapes:", shapes.ids.length)
