@@ -9,6 +9,7 @@ import generateGradientThumbnail from "@/lib/helper"
 import { fetchMutation } from "convex/nextjs"
 import { Id } from "../../convex/_generated/dataModel"
 import { api } from "../../convex/_generated/api"
+import { clearAll } from "@/redux/slices/shapes"
 
 export const useProjectCreation = () => {
     const dispatch = useAppDispatch()
@@ -65,6 +66,7 @@ export const useProjectCreation = () => {
 
             dispatch(createProjectSuccess())
             // ✅ Navigate directly into the new project
+            dispatch(clearAll())
             router.push(`/dashboard/${username}/canvas?project=${result.projectId}`)
             toast.success('Project created!')
 
