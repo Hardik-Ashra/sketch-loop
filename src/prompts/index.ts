@@ -528,10 +528,353 @@
 // //   }
 // // }
 
+/**
+ * =========================================================
+ * PROMPT BUILDER (V2 FOUNDATION) — GEMINI OPTIMISED
+ * =========================================================
+ */
+
+type StyleColorSection = {
+  swatches: {
+    name: string;
+    hexColor: string;
+    description?: string;
+  }[];
+};
+
+type TypographySection = {
+  styles: {
+    name: string;
+    description?: string;
+    fontFamily: string;
+    fontWeight: string;
+    fontSize: string;
+    lineHeight: string;
+  }[];
+};
+
+function formatColors(colors: StyleColorSection[] = []) {
+  return colors
+    .flatMap((c) =>
+      c.swatches.map(
+        (s) => `• ${s.name}: ${s.hexColor}${s.description ? ` — ${s.description}` : ""}`
+      )
+    )
+    .join("\n");
+}
+
+function formatTypography(typography: TypographySection[] = []) {
+  return typography
+    .flatMap((t) =>
+      t.styles.map(
+        (s) =>
+          `• ${s.name}: ${s.fontFamily} ${s.fontWeight} ${s.fontSize}/${s.lineHeight}${s.description ? ` — ${s.description}` : ""}`
+      )
+    )
+    .join("\n");
+}
+
+function styleTokenBlock(
+  colors: StyleColorSection[] | undefined,
+  typography: TypographySection[] | undefined
+): string {
+  const parts: string[] = [];
+  if (colors?.length) parts.push(`<colors>\n${formatColors(colors)}\n</colors>`);
+  if (typography?.length) parts.push(`<typography>\n${formatTypography(typography)}\n</typography>`);
+  return parts.length ? `<style_tokens>\n${parts.join("\n")}\n</style_tokens>` : "";
+}
+
+export function buildWorkflowPrompt({ currentHTML, selectedPageType, colors, typography, imageCount }: any) {
+  let prompt = `<role>
+You are a senior UI engineer specialising in design systems and multi-page web applications.
+</role>
+
+<main_page_reference>
+${currentHTML}
+</main_page_reference>
+
+<task>
+Generate a "${selectedPageType}" workflow page that integrates seamlessly with the main page above.
+
+Step 1 — ANALYSE the main page reference.
+  • Identify exact color values, font families, spacing scale, and component patterns already used.
+  • Do NOT infer new design decisions — mirror what is already there.
+
+Step 2 — STRUCTURE the new page.
+  • Reuse the same layout skeleton (header, sidebar, grid, etc.) from the main page.
+  • Adapt content areas to suit a "${selectedPageType}" context.
+  • Every major component MUST have a descriptive kebab-case id attribute.
+
+Step 3 — APPLY style tokens (these take highest priority over Step 1 inferences).`;
+
+  if (colors?.length) prompt += `\n<style_tokens>\n<colors>\n${formatColors(colors)}\n</colors>`;
+  if (typography?.length) prompt += `\n<typography>\n${formatTypography(typography)}\n</typography>\n</style_tokens>`;
+  if (imageCount) prompt += `\n  • ${imageCount} inspiration image(s) available — map them to image slots in order.`;
+
+  prompt += `
+
+Step 4 — VERIFY before outputting.
+  ✅ Every section has py-16 px-6 minimum (no py-8, py-12)
+  ✅ Cards have p-6 minimum internal padding
+  ✅ Grid gaps are gap-8 minimum
+  ✅ Buttons have px-6 py-3 minimum; CTA buttons use px-8 py-4
+  ✅ Only .c-* color classes used — never Tailwind color utilities
+  ✅ No viewport units (vh, vw, h-screen)
+  ✅ No <script> tags or inline event handlers
+</task>
+
+<output_contract>
+Return ONLY the HTML wrapped in <div data-generated-ui>. No explanations. No markdown fences.
+</output_contract>`;
+
+  return prompt;
+}
+
+export function buildRedesignPrompt({ userMessage, currentHTML, colors, typography, hasWireframe, imageCount }: any) {
+  let prompt = `<role>
+You are a senior UI engineer making targeted changes to an existing UI based on a user request.
+</role>
+
+<user_request>
+${userMessage}
+</user_request>`;
+
+  if (currentHTML) prompt += `\n\n<current_html>\n${currentHTML}\n</current_html>`;
+  if (hasWireframe) prompt += `\n\n<wireframe_context>A wireframe image has been provided. Use it to understand the intended layout structure.</wireframe_context>`;
+
+  prompt += `\n\n<task>
+Step 1 — INTERPRET the user request literally and completely.
+  • Identify every explicit change requested.
+  • Do NOT make changes the user did not ask for.
+
+Step 2 — PRESERVE everything not mentioned.
+  • Keep all layout structure, component hierarchy, and id attributes intact.
+
+Step 3 — APPLY style tokens (mandatory — do not derive colors from context).`;
+
+  if (colors?.length) prompt += `\n<style_tokens>\n<colors>\n${formatColors(colors)}\n</colors>`;
+  if (typography?.length) prompt += `\n<typography>\n${formatTypography(typography)}\n</typography>\n</style_tokens>`;
+  if (imageCount) prompt += `\n  • ${imageCount} inspiration image(s) available for image slots.`;
+
+  prompt += `
+
+Step 4 — VERIFY spacing and color compliance.
+  ✅ Sections: py-16 px-6 minimum
+  ✅ Cards: p-6 minimum
+  ✅ Buttons: px-6 py-3 minimum (CTA: px-8 py-4)
+  ✅ Grid gaps: gap-8 minimum
+  ✅ Colors: .c-* classes only — no Tailwind color utilities, no hex in class attributes
+  ✅ No viewport units. No <script> tags.
+</task>
+
+<output_contract>
+Return ONLY the complete redesigned HTML wrapped in <div data-generated-ui>. No explanations. No markdown.
+</output_contract>`;
+
+  return prompt;
+}
+
+export function buildWorkflowRedesignPrompt({ userMessage, currentHTML, colors, typography }: any) {
+  return `<role>
+You are a senior UI engineer making surgical edits to a workflow page. Minimum change to satisfy the request.
+</role>
+
+<user_request>
+${userMessage}
+</user_request>
+
+<current_html>
+${currentHTML}
+</current_html>
+
+<task>
+Step 1 — IDENTIFY exactly which elements the request targets.
+Step 2 — MODIFY only those elements. Leave all other HTML byte-for-byte identical.
+Step 3 — APPLY style tokens. Do not introduce new color values.
+<style_tokens>
+<colors>
+${formatColors(colors)}
+</colors>
+<typography>
+${formatTypography(typography)}
+</typography>
+</style_tokens>
+Step 4 — CONFIRM output is valid HTML with no regressions.
+</task>
+
+<output_contract>
+Return ONLY the modified HTML. Same outer structure. No explanations.
+</output_contract>`;
+}
+
+export function buildStyleGuidePrompt(imageCount: number) {
+  return `<role>
+You are a design-system engineer. Analyse moodboard images and produce a precise design token specification as JSON.
+</role>
+
+<task>
+You have been provided ${imageCount} moodboard image(s).
+
+Step 1 — EXTRACT colors.
+  • Identify 3–5 dominant colors, accent/highlight colors, and background/neutral tones.
+
+Step 2 — MAP to semantic tokens.
+  • background: lightest surface. foreground: highest-contrast text (WCAG AA ≥4.5:1).
+  • primary: most prominent brand/CTA color. primaryForeground: white or black for ≥4.5:1 on primary.
+  • All other tokens follow the same contrast logic.
+  • destructive: use safe red (#DC2626) if none visible in images.
+
+Step 3 — INFER typography.
+  • Web-safe fonts only: Inter, Roboto, Open Sans, Source Sans Pro, Lato, Poppins.
+  • Size hierarchy: H1 2.25rem → H2 1.875rem → H3 1.5rem → body 1rem → small 0.875rem.
+  • Weights: headlines 600–700, body 400, buttons 500–600.
+
+Step 4 — GENERATE theme name and description.
+  • Name: "[Adjective] [Style]" e.g. "Warm Corporate", "Bold Artistic".
+  • Description: single sentence, 10–15 words.
+
+Step 5 — VALIDATE.
+  ✅ All hex values are valid 6-digit #RRGGBB format
+  ✅ background + foreground contrast ≥4.5:1
+  ✅ Typography sizes decrease logically H1 → small
+  ✅ success field is true
+</task>
+
+<output_contract>
+Return ONLY valid JSON. No markdown fences. No explanations. No trailing commas.
+Must include: { success: true, ...allTokens }
+</output_contract>`;
+}
+
+export function buildSketchGenerationPrompt({ colors, typography }: any) {
+  return `<role>
+You are a design engineer that converts wireframe sketches into production-ready HTML.
+You are provided a wireframe image and a style guide. Both are mandatory inputs.
+</role>
+
+<task>
+Step 1 — ANALYSE the wireframe image first.
+  • Count every distinct region: headers, sections, cards, forms, footers, etc.
+  • Identify the layout pattern: sidebar + main, grid, stacked, etc.
+  • Note every image slot and its position.
+  • Black background = canvas only (ignore). White labels = component identifiers (do NOT render as text).
+  • Do NOT add sections not shown. Do NOT omit sections that are shown.
+  • If the wireframe is unclear, ambiguous, or minimal — USE CREATIVE FREEDOM to infer a complete,
+    professional layout. A vague sketch is permission to design something great, not an excuse for
+    an empty page. Infer the most likely intent and build it fully.
+
+Step 2 — MAP wireframe labels to HTML elements.
+  • "navbar / nav"    → <nav>
+  • "hero / banner"   → <section> with large image + overlay
+  • "sidebar"         → <aside>
+  • "image"           → <img> or skeleton placeholder
+  • "button / cta"    → <button>
+  • "card"            → <article> with image + text
+  • "form / input"    → <form> with <label> + id associations
+  • Numbers in boxes  → metric <span> displays
+
+Step 3 — BUILD the HTML structure.
+  Required wrapper:
+  <div data-generated-ui>
+    <style>
+      [data-generated-ui] .c-bg { background-color: #HEXVAL; }
+      /* all required .c-* classes with literal hex values */
+    </style>
+    <div class="container mx-auto max-w-7xl">
+      <!-- components -->
+    </div>
+  </div>
+
+  Required .c-* classes:
+  Backgrounds: .c-bg .c-card-bg .c-primary-bg .c-secondary-bg .c-accent-bg .c-muted-bg
+  Text:        .c-fg .c-card-fg .c-primary-fg .c-secondary-fg .c-accent-fg .c-muted-fg
+  Other:       .c-border .c-ring
+
+  Color pairing rules (NEVER mix):
+  • Main content  → c-bg + c-fg only
+  • Cards         → c-card-bg + c-card-fg only
+  • Primary CTA   → c-primary-bg + c-primary-fg only
+  • Secondary     → c-secondary-bg + c-secondary-fg only
+  • Muted         → c-muted-bg + c-muted-fg only
+  • Accent        → c-accent-bg + c-accent-fg only
+
+Step 4 — APPLY style tokens (mandatory).
+<style_tokens>
+<colors>
+${formatColors(colors)}
+</colors>
+<typography>
+${formatTypography(typography)}
+</typography>
+</style_tokens>
+
+Step 5 — ADD real images using Unsplash.
+  • Every <img> tag MUST use a real Unsplash URL — never leave src empty or use placeholders.
+  • Format: https://images.unsplash.com/photo-{ID}?w={WIDTH}&h={HEIGHT}&fit=crop&auto=format
+  • Choose semantically relevant photos based on the wireframe context and inspiration images.
+  • Examples:
+    - Hero/banner:    https://images.unsplash.com/photo-1497366216548-37526070297c?w=1200&h=600&fit=crop&auto=format
+    - People/team:    https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=800&h=500&fit=crop&auto=format
+    - Product:        https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=600&h=600&fit=crop&auto=format
+    - Architecture:   https://images.unsplash.com/photo-1486325212027-8081e485255e?w=800&h=500&fit=crop&auto=format
+    - Nature:         https://images.unsplash.com/photo-1501854140801-50d01698950b?w=800&h=500&fit=crop&auto=format
+    - Food:           https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=800&h=500&fit=crop&auto=format
+    - Technology:     https://images.unsplash.com/photo-1518770660439-4636190af475?w=800&h=500&fit=crop&auto=format
+  • Pick the most contextually appropriate photo IDs. Vary them — don't reuse the same ID.
+  • Always add crossorigin="anonymous" to every <img> tag.
+
+Step 6 — DESIGN with shadcn/ui + Aceternity UI patterns.
+  • Use shadcn/ui component patterns for all interactive elements:
+    - Cards:    rounded-xl border shadow-sm with p-6 internal padding
+    - Buttons:  rounded-md font-medium transition-colors with proper focus rings
+    - Inputs:   rounded-md border px-3 py-2 with focus:ring-2
+    - Badges:   rounded-full px-2.5 py-0.5 text-xs font-medium
+    - Alerts:   rounded-lg border p-4 with icon + message
+    - Tables:   divide-y with thead/tbody and proper hover states
+  • Use Aceternity UI-inspired effects for hero/featured sections:
+    - Gradient backgrounds using .c-* color classes (not Tailwind colors)
+    - Subtle animated borders: ring-1 ring-white/10 (for dark themes)
+    - Glass morphism cards: backdrop-blur-sm bg-white/10 (for hero overlays)
+    - Gradient text: use inline style="background: linear-gradient(...); -webkit-background-clip: text; color: transparent"
+      only for hero headlines — use .c-* hex values from style tokens
+    - Spotlight/glow effects: use box-shadow with rgba values derived from primary color
+  • Google Material Design 3 influence for spacing and elevation:
+    - Elevation levels: shadow-sm (level 1), shadow-md (level 2), shadow-lg (level 3)
+    - Use elevation consistently — cards float above background, modals above cards
+    - 8px grid system: all spacing in multiples of 8px (p-2=8px, p-4=16px, p-6=24px, p-8=32px)
+
+Step 7 — ASSIGN ids to every major component (kebab-case).
+  • Navigation: id="main-nav"
+  • Hero: id="hero-section"
+  • Cards: id="card-1", id="card-2" (sequential)
+  • Buttons: id="cta-button", id="submit-btn"
+  • Sections: id="about-section", id="features-section"
+  • Images: id="hero-image", id="product-image-1"
+
+Step 8 — VERIFY.
+  ✅ Sections: py-16 px-6 minimum (hero: py-20 or py-24)
+  ✅ Cards: p-6 minimum internal padding
+  ✅ Text blocks: space-y-4 minimum
+  ✅ Buttons: px-6 py-3 minimum (CTA: px-8 py-4)
+  ✅ Button groups: gap-4 or space-x-4
+  ✅ Grid gaps: gap-8 minimum
+  ✅ Section separation: mb-16 or mb-20 between major sections
+  ✅ No Tailwind color utilities — .c-* classes only
+  ✅ No viewport units (vh, vw, h-screen)
+  ✅ No <script> tags or inline event handlers
+  ✅ Every <img> has a real Unsplash src and crossorigin="anonymous"
+  ✅ Every major element has a descriptive id
+  ✅ shadcn/ui component patterns applied to all interactive elements
+  ✅ At least one Aceternity-inspired effect in hero/featured section
+</task>
+
+<output_contract>
+Return ONLY the HTML wrapped in <div data-generated-ui>. No explanations. No markdown fences.
+</output_contract>`;
+}
+
 export const prompts = {
   styleGuide: {
-    // Gemini: systemInstruction is processed separately from the user turn.
-    // Keep this short and role-focused — detailed steps go in buildStyleGuidePrompt().
     system: `You are a Style Guide Generator AI that creates comprehensive design systems from visual inspiration.
 
 Your process:
@@ -575,25 +918,31 @@ OUTPUT: Return ONLY valid JSON. No markdown fences. No explanations. No trailing
   },
 
   generativeUi: {
-    // Gemini: systemInstruction anchors the model's role for the entire session.
-    // Detailed step-by-step instructions go in buildSketchGenerationPrompt().
-    system: `You are a design engineer that converts wireframe sketches into production-ready HTML.
+    system: `You are a design engineer that converts wireframe sketches into production-ready HTML, inspired by shadcn/ui, Aceternity UI, and Google Material Design 3.
+
+DESIGN PHILOSOPHY:
+  • shadcn/ui patterns for all interactive components (cards, buttons, inputs, badges, tables)
+  • Aceternity UI effects for hero sections (gradients, glass morphism, glow, gradient text)
+  • Material Design 3 for elevation and spacing (8px grid, consistent shadow levels)
+  • Real Unsplash images for every image slot — never empty src, never placeholders
+  • Creative freedom when wireframe is unclear — infer the best possible layout
 
 WIREFRAME INTERPRETATION RULES:
   • Black background = canvas only — ignore it.
   • White text/labels = component identifiers — do NOT render as actual UI text.
   • Freehand arrows, lines, circles = annotations — ignore them.
   • Wireframe defines ALL structure — never add or remove sections.
+  • UNCLEAR WIREFRAME = creative license. Design something complete and professional.
 
 LABEL → COMPONENT MAPPING:
   • "navbar / nav"    → <nav> with navigation links
-  • "hero / banner"   → large <section> with image overlay content
+  • "hero / banner"   → large <section> with Unsplash image + overlay + gradient text headline
   • "sidebar"         → vertical <aside> navigation or content panel
-  • "image"           → <img> or skeleton placeholder
-  • "button / cta"    → <button> element
-  • "card"            → <article> with image + text
-  • Numbers in boxes  → metric <span> displays
-  • "form / input"    → <form> with proper <label> + id associations
+  • "image"           → <img src="https://images.unsplash.com/..."> — always real photo
+  • "button / cta"    → <button> with shadcn/ui styling
+  • "card"            → <article> with shadcn/ui card pattern (rounded-xl border shadow-sm p-6)
+  • Numbers in boxes  → metric <span> displays with large typography
+  • "form / input"    → <form> with shadcn/ui input styling and proper <label> + id associations
 
 HTML STRUCTURE (always):
   <div data-generated-ui>
@@ -606,10 +955,30 @@ HTML STRUCTURE (always):
     </div>
   </div>
 
+IMAGE RULES (enforced):
+  • Every <img> MUST use https://images.unsplash.com/photo-{ID}?w={W}&h={H}&fit=crop&auto=format
+  • Every <img> MUST have crossorigin="anonymous"
+  • Choose semantically appropriate photos — vary IDs, never repeat the same photo
+  • NEVER use empty src, placeholder.com, via.placeholder.com, or picsum.photos
+
+SHADCN/UI COMPONENT PATTERNS:
+  • Card:    <article class="rounded-xl border c-border shadow-sm p-6 c-card-bg">
+  • Button:  <button class="rounded-md px-6 py-3 font-medium transition-colors c-primary-bg c-primary-fg">
+  • Input:   <input class="rounded-md border c-border px-3 py-2 c-bg c-fg focus:ring-2 focus:ring-offset-2">
+  • Badge:   <span class="rounded-full px-2.5 py-0.5 text-xs font-medium c-accent-bg c-accent-fg">
+  • Table:   <table class="w-full divide-y c-border"> with proper thead/tbody
+
+ACETERNITY UI EFFECTS (use in hero/featured sections):
+  • Gradient text: <h1 style="background: linear-gradient(135deg, #HEX1, #HEX2); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
+  • Glass card:    class="backdrop-blur-sm" with semi-transparent background via inline style
+  • Glow effect:   style="box-shadow: 0 0 60px rgba(R,G,B,0.3)" using primary color RGB values
+  • Gradient bg:   style="background: linear-gradient(135deg, #HEX1 0%, #HEX2 100%)"
+
 COLOR RULES (enforced):
-  • Use ONLY .c-* custom classes for color — never Tailwind color utilities (bg-blue-500, text-gray-800, etc.)
+  • Use ONLY .c-* custom classes for color — never Tailwind color utilities
   • Never use bg-[#...] or text-[#...] arbitrary Tailwind values
   • Pair correctly: c-bg+c-fg, c-card-bg+c-card-fg, c-primary-bg+c-primary-fg, etc.
+  • Exception: inline style="" is allowed ONLY for Aceternity gradient/glow effects
 
 SPACING RULES (enforced):
   • Sections: py-16 px-6 MINIMUM — never py-8 or py-12
@@ -627,11 +996,12 @@ ID SYSTEM (mandatory):
 
 NEVER:
   ❌ Render wireframe labels as actual UI text
-  ❌ Add sections not shown in wireframe
-  ❌ Use Tailwind color utilities
+  ❌ Add sections not shown in wireframe (unless wireframe is unclear)
+  ❌ Use Tailwind color utilities (bg-blue-500, text-gray-800, etc.)
   ❌ Use viewport units (vh, vw, h-screen, min-h-screen)
   ❌ Include <script> tags or event handlers
-  ❌ Use <img src=""> with empty src
+  ❌ Use empty <img src="">
+  ❌ Use placeholder image services
   ❌ Create elements without descriptive id attributes
   ❌ Use insufficient spacing (py-8, py-12, p-4, gap-4, gap-6, px-4 py-2)
 

@@ -4,12 +4,7 @@ import { google } from "@ai-sdk/google";
 import { streamText } from "ai";
 import { NextRequest, NextResponse } from "next/server";
 import { buildRedesignPrompt } from "@/lib/ai/promptBuilder";
-import {
-    validateAndFetchContext,
-    sanitizeHTML,
-    buildStream,
-    handleRouteError,
-} from "@/lib/ai/withAIRoute";
+import { validateAndFetchContext, sanitizeHTML, buildStream, handleRouteError } from "@/lib/ai/withAIRoute";
 
 export async function POST(request: NextRequest) {
     try {
@@ -31,7 +26,8 @@ export async function POST(request: NextRequest) {
             return NextResponse.json({ error: "currentHTML missing or too large" }, { status: 400 });
         }
 
-        const contextResult = await validateAndFetchContext(projectId, { fetchImages: true });
+        // FIX – was missing request, causing request.cookies crash
+        const contextResult = await validateAndFetchContext(projectId, { fetchImages: true, request });
         if ("error" in contextResult) return contextResult.error;
         const { styleGuide, imageUrls } = contextResult.context;
 
@@ -60,7 +56,6 @@ export async function POST(request: NextRequest) {
         return buildStream(result, async () => {
             await ConsumeCreditsQuery({ amount: 1 });
         });
-
     } catch (error) {
         return handleRouteError(error, "redesign");
     }

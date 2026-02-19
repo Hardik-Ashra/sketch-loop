@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
-import { CreditsBalanceQuery, StyleGuideQuery, InspirationImagesQuery } from "@/convex/query.config";
-import { Ratelimit } from "@upstash/ratelimit";
-import { Redis } from "@upstash/redis";
+import { fetchQuery } from "convex/nextjs";
+import { api } from "../../../convex/_generated/api";
+import { Id } from "../../../convex/_generated/dataModel";
 
-export const MAX_HTML_SIZE = 100_000; // 100KB max HTML input
+export const MAX_HTML_SIZE = 100_000;
 export const MAX_IMAGE_COUNT = 10;
 
 export type RouteContext = {
@@ -14,48 +14,73 @@ export type RouteContext = {
     imageUrls: string[];
 };
 
-
-const ratelimit = new Ratelimit({
-    redis: Redis.fromEnv(),
-    limiter: Ratelimit.slidingWindow(10, "1 m"), // 10 req/min per IP
-});
-
-export async function checkRateLimit(request: NextRequest): Promise<NextResponse | null> {
-    const ip = request.headers.get("x-forwarded-for") ?? "anonymous";
-    const { success } = await ratelimit.limit(ip);
-    if (!success) {
-        return NextResponse.json({ error: "Too many requests" }, { status: 429 });
-    }
-    return null;
+function getConvexToken(request: NextRequest): string | undefined {
+    const cookie = request.cookies.get("__Host-__convexAuthJWT")?.value
+    if (cookie) return cookie
+    const authHeader = request.headers.get("authorization")
+    if (authHeader?.startsWith("Bearer ")) return authHeader.slice(7)
+    return undefined
 }
 
 export async function validateAndFetchContext(
     projectId: string,
-    options: { fetchImages?: boolean } = {}
+    options: { fetchImages?: boolean; request: NextRequest }
 ): Promise<{ error: NextResponse } | { context: RouteContext }> {
-    // Credits check
-    const { ok: balanceOk, balance } = await CreditsBalanceQuery();
-    if (!balanceOk || balance === 0) {
+
+    const token = getConvexToken(options.request)
+    const tokenOpts = token ? { token } : {}
+
+    // Step 1 — fetch current user to get userId
+    const currentUser = await fetchQuery(api.user.getCurrentUser, {}, tokenOpts)
+    if (!currentUser?._id) {
         return {
-            error: NextResponse.json({ error: "No credits available" }, { status: 402 }),
-        };
+            error: NextResponse.json({ error: "Unauthorized" }, { status: 401 }),
+        }
     }
 
-    // Style guide
-    const styleGuide = await StyleGuideQuery(projectId);
-    const styleGuideData = (styleGuide?.styleGuide?._valueJSON ?? {}) as any;
-    const colorSections = Object.values(styleGuideData?.colorSections ?? {});
-    const typographySections = styleGuideData?.typographySections ?? [];
+    // Step 2 — check credits using the resolved userId
+    const balance = await fetchQuery(
+        api.subscription.getCreditsBalance,
+        { userId: currentUser._id as Id<"users"> },
+        tokenOpts
+    )
 
-    // Inspiration images (optional)
-    let imageUrls: string[] = [];
+    if (!balance || balance === 0) {
+        return {
+            error: NextResponse.json({ error: "No credits available" }, { status: 402 }),
+        }
+    }
+
+    // Step 3 — fetch style guide
+    const styleGuideResult = await fetchQuery(
+        api.projects.getProjectStyleGuide,
+        { projectId: projectId as Id<"projects"> },
+        tokenOpts
+    )
+
+    const styleGuideData = (styleGuideResult ?? {}) as any
+    const colorSections = Object.values(styleGuideData?.colorSections ?? {})
+    const typographySections = styleGuideData?.typographySections ?? []
+
+    if (!colorSections.length && !typographySections.length) {
+        return {
+            error: NextResponse.json({ error: "Style guide not found" }, { status: 404 }),
+        }
+    }
+
+    // Step 4 — fetch inspiration images (optional)
+    let imageUrls: string[] = []
     if (options.fetchImages) {
-        const inspirationResult = await InspirationImagesQuery(projectId);
-        const images = (inspirationResult?.images?._valueJSON as unknown as any[]) ?? [];
+        const inspirationResult = await fetchQuery(
+            api.inspiration.getInspirationImages,
+            { projectId: projectId as Id<"projects"> },
+            tokenOpts
+        )
+        const images = (inspirationResult as unknown as any[]) ?? []
         imageUrls = images
             .map((img) => img.url)
             .filter(Boolean)
-            .slice(0, MAX_IMAGE_COUNT);
+            .slice(0, MAX_IMAGE_COUNT)
     }
 
     return {
@@ -63,7 +88,7 @@ export async function validateAndFetchContext(
             styleGuide: { colorSections, typographySections },
             imageUrls,
         },
-    };
+    }
 }
 
 export function sanitizeHTML(html: string): string | null {
@@ -77,7 +102,6 @@ export function buildStream(
     onSuccess: () => Promise<void>
 ): Response {
     const encoder = new TextEncoder();
-
     const stream = new ReadableStream({
         async start(controller) {
             try {
@@ -92,7 +116,6 @@ export function buildStream(
             }
         },
     });
-
     return new Response(stream, {
         headers: {
             "Content-Type": "text/html; charset=utf-8",

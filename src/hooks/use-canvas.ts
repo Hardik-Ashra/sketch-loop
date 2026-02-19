@@ -695,7 +695,6 @@ export const useFrame = (shape: FrameShape) => {
             const urlParams = new URLSearchParams(window.location.search)
             const projectId = urlParams.get('project')
             if (projectId) formData.append('projectId', projectId)
-
             const response = await fetch('/api/generate', {
                 method: 'POST',
                 body: formData,
