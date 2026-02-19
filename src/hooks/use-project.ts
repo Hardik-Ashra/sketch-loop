@@ -47,7 +47,12 @@ export const useProjectCreation = () => {
                 userId: userId as Id<'users'>,
                 // ✅ trim() rejects whitespace-only strings like "   "
                 name: name?.trim() || undefined,
-                sketchesData: { shapes, tool, selected, frameCounter },
+                sketchesData: JSON.parse(JSON.stringify({
+                    shapes,
+                    tool,
+                    selected,
+                    frameCounter,
+                })),
                 thumbnail,
             })
 
