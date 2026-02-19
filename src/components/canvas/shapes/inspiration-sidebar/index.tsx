@@ -147,7 +147,7 @@ const InspirationSidebar = ({ isOpen, onClose }: InspirationSidebarProps) => {
                   : img,
               ),
             );
-          } catch (error) {
+          } catch {
             setImages((prev) =>
               prev.map((img) =>
                 img.id === image.id

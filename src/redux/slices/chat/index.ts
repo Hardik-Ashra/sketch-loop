@@ -144,9 +144,9 @@ const chatSlice = createSlice({
                 chat.streamingMessageId = null
 
                 chat.messages.push({
-                    id: 'error-${Date.now()}',
+                    id: `error-${Date.now()}`,
                     role: 'assistant',
-                    content: 'Sorry, I encountered an error: ${error}',
+                    content: `Sorry, I encountered an error: ${error}`,
                     timestamp: new Date().toISOString(),
                 })
             }

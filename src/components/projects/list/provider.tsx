@@ -1,7 +1,7 @@
 "use client";
 
 import { fetchProjectsSuccess } from "@/redux/slices/projects";
-import { useAppDispatch, useAppSelector } from "@/redux/store";
+import { useAppDispatch } from "@/redux/store";
 import { useEffect } from "react";
 import { usePreloadedQuery } from "convex/react";
 import type { Preloaded } from "convex/react";

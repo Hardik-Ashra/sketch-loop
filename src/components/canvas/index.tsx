@@ -45,7 +45,6 @@ const InfinityCanvas = () => {
     activeGeneratedUIId,
     generateWorkflow,
     exportDesign,
-    openChat,
     closeChat,
     toggleChat,
   } = useGlobalChat();

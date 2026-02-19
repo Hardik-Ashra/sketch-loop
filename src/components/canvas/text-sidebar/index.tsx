@@ -22,7 +22,6 @@ import {
   Strikethrough,
   Underline,
   Type,
-  AlignJustify,
   Space,
   LineChart,
 } from "lucide-react";
@@ -67,7 +66,7 @@ const TextSidebar = ({ isOpen }: Props) => {
     if (selectedTextShape) {
       setColorInput(selectedTextShape.fill || "#ffffff");
     }
-  }, [selectedTextShape?.id]);
+  }, [selectedTextShape?.id]); //eslint-disable-line react-hooks/exhaustive-deps
 
   // ========================================================================
   // FONT FAMILIES

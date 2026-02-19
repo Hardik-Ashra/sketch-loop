@@ -1,11 +1,5 @@
 import { MoodboardImage } from "@/hooks/use-styles";
-import {
-  AlertCircle,
-  AlertCircleIcon,
-  CheckCircle,
-  Loader2,
-  X,
-} from "lucide-react";
+import { AlertCircleIcon, CheckCircle, Loader2, X } from "lucide-react";
 import Image from "next/image";
 
 const UploadStatus = (image: {

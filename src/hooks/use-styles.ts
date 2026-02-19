@@ -8,7 +8,7 @@ import { toast } from "sonner";
 import { Id } from "../../convex/_generated/dataModel";
 import { useGenerateStyleGuideMutation } from "@/redux/api/style-guide";
 import { useRouter } from "next/navigation";
-import { updateShape } from "../../s2c-boiler-plate/slice/shapes";
+import { updateShape } from "@/redux/slices/shapes";
 import { GeneratedUIShape } from "@/redux/slices/shapes";
 import { useAppDispatch } from "@/redux/store";
 

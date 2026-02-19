@@ -574,15 +574,7 @@ function formatTypography(typography: TypographySection[] = []) {
     .join("\n");
 }
 
-function styleTokenBlock(
-  colors: StyleColorSection[] | undefined,
-  typography: TypographySection[] | undefined
-): string {
-  const parts: string[] = [];
-  if (colors?.length) parts.push(`<colors>\n${formatColors(colors)}\n</colors>`);
-  if (typography?.length) parts.push(`<typography>\n${formatTypography(typography)}\n</typography>`);
-  return parts.length ? `<style_tokens>\n${parts.join("\n")}\n</style_tokens>` : "";
-}
+
 
 export function buildWorkflowPrompt({ currentHTML, selectedPageType, colors, typography, imageCount }: any) {
   let prompt = `<role>

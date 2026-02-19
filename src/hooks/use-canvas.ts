@@ -44,7 +44,7 @@ const distanceToLineSegment = (point: Point, lineStart: Point, lineEnd: Point): 
     const D = lineEnd.y - lineStart.y
     const dot = A * C + B * D
     const lenSq = C * C + D * D
-    let param = lenSq !== 0 ? dot / lenSq : -1
+    const param = lenSq !== 0 ? dot / lenSq : -1
     let xx: number
     let yy: number
     if (param < 0) { xx = lineStart.x; yy = lineStart.y }
@@ -229,7 +229,6 @@ export const useInfiniteCanvas = () => {
         if (isDrawingRef.current) {
             freehandRafRef.current = window.requestAnimationFrame(freehandTick)
         }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [requestRender])
 
     // ─────────────────────────────────────────────────────────────────────────
@@ -247,7 +246,6 @@ export const useInfiniteCanvas = () => {
             const dy = e.shiftKey ? 0 : e.deltaY
             dispatch(wheelPan({ dx: -dx, dy: -dy }))
         }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [dispatch, localPointFromClient])
 
     // ─────────────────────────────────────────────────────────────────────────
@@ -918,7 +916,7 @@ export const useGlobalChat = () => {
         try {
             exportGeneratedUIAsHTML(shape.uiSpecData, `generated-ui-${generatedUIId.slice(0, 8)}.html`)
             toast.success('Design exported successfully!')
-        } catch (error) {
+        } catch {
             toast.error('Failed to export design. Please try again.')
         }
     }

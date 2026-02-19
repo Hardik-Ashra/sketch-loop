@@ -60,7 +60,7 @@ const StyleGuideSchema = z.object({
 async function generateStyleGuideSafe(config: any) {
     try {
         return await generateObject({ ...config, maxRetries: 1 })
-    } catch (err) {
+    } catch {
         console.warn("First generation failed. Retrying with repair prompt...")
         return await generateObject({
             ...config,

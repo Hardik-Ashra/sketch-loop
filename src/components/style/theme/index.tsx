@@ -12,7 +12,6 @@ export type ColorSection = {
   swatches: Swatch[];
 };
 
-export type ColorGuide = Record<string, ColorSection>;
 type ColorThemeProps = {
   title: string;
   swatches: Swatch[];
@@ -60,18 +59,15 @@ export const ColorTheme = ({ title, swatches, className }: ColorThemeProps) => {
 };
 
 type ThemeContentProps = {
-  colorGuide?: ColorGuide | null;
+  colorGuide?: ColorSection[] | null;
 };
 
 export const ThemeContent = ({ colorGuide }: ThemeContentProps) => {
-  if (!colorGuide || typeof colorGuide !== "object") return null;
-  const orderedKeys = ["primary", "secondary", "status", "ui", "utility"];
-
-  const sections = orderedKeys.map((key) => colorGuide[key]).filter(Boolean);
+  if (!colorGuide?.length) return null;
 
   return (
     <div className="flex flex-col gap-10">
-      {sections.map((section, index) => (
+      {colorGuide.map((section, index) => (
         <ColorTheme
           key={`${section.title}-${index}`}
           title={section.title}
