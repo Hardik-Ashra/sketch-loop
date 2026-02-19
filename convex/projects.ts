@@ -65,7 +65,7 @@ async function getNextProjectNumber(ctx: any, userId: string): Promise<number> {
   if (!counter) {
     await ctx.db.insert('project_counters', {
       userId,
-      nextProjectNumber: 2,
+      nextProjectNumber: 1,
     })
     return 1
   }
