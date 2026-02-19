@@ -39,7 +39,7 @@ export const useProjectCreation = () => {
         if (isCreating) return
 
         dispatch(createProjectStart())
-
+        dispatch(clearAll())
         try {
             const thumbnail = generateGradientThumbnail()
 
@@ -66,7 +66,7 @@ export const useProjectCreation = () => {
 
             dispatch(createProjectSuccess())
             // ✅ Navigate directly into the new project
-            dispatch(clearAll())
+
             router.push(`/dashboard/${username}/canvas?project=${result.projectId}`)
             toast.success('Project created!')
 
