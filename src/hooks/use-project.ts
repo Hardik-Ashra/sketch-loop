@@ -42,7 +42,7 @@ export const useProjectCreation = () => {
         dispatch(clearAll())
         try {
             const thumbnail = generateGradientThumbnail()
-
+            console.log("Creating with shapes:", shapes.ids.length)
             const result = await fetchMutation(api.projects.createProject, {
                 userId: userId as Id<'users'>,
                 // ✅ trim() rejects whitespace-only strings like "   "
@@ -55,7 +55,7 @@ export const useProjectCreation = () => {
                 })),
                 thumbnail,
             })
-
+            console.log("Redux shapes:", shapes.ids.length)
             // ✅ Single timestamp — createdAt and lastModified are guaranteed identical
             const now = Date.now()
 
