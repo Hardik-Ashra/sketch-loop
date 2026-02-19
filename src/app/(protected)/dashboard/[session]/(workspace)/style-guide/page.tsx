@@ -15,8 +15,7 @@ const Page = async ({ searchParams }: Props) => {
   const projectId = (await searchParams).project;
   const existingStyleGuide = await StyleGuideQuery(projectId);
 
-  const guide = existingStyleGuide.styleGuide
-    ?._valueJSON as unknown as StyleGuide;
+  const guide = existingStyleGuide.styleGuide;
 
   const colorGuide = guide?.colorSections || [];
   const typographyGuide = guide?.typographySections || [];

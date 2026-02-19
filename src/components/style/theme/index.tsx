@@ -63,11 +63,11 @@ type ThemeContentProps = {
 };
 
 export const ThemeContent = ({ colorGuide }: ThemeContentProps) => {
-  if (!colorGuide?.length) return null;
+  if (!Object.values(colorGuide || {}).length) return null;
 
   return (
     <div className="flex flex-col gap-10">
-      {colorGuide.map((section, index) => (
+      {Object.values(colorGuide || {}).map((section, index) => (
         <ColorTheme
           key={`${section.title}-${index}`}
           title={section.title}
