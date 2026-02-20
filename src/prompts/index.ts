@@ -708,35 +708,32 @@ You are a design-system engineer. Analyse moodboard images and produce a precise
 You have been provided ${imageCount} moodboard image(s).
 
 Step 1 — EXTRACT colors.
-  • Identify 3–5 dominant colors, accent/highlight colors, and background/neutral tones.
+• Identify dominant colors, accents, and neutral tones.
 
 Step 2 — MAP to semantic tokens.
-  • background: lightest surface. foreground: highest-contrast text (WCAG AA ≥4.5:1).
-  • primary: most prominent brand/CTA color. primaryForeground: white or black for ≥4.5:1 on primary.
-  • All other tokens follow the same contrast logic.
-  • destructive: use safe red (#DC2626) if none visible in images.
+• background = lightest surface.
+• foreground = highest contrast text (WCAG ≥4.5:1).
+• destructive = safe red (#DC2626) if not visible.
 
 Step 3 — INFER typography.
-  • Web-safe fonts only: Inter, Roboto, Open Sans, Source Sans Pro, Lato, Poppins.
-  • Size hierarchy: H1 2.25rem → H2 1.875rem → H3 1.5rem → body 1rem → small 0.875rem.
-  • Weights: headlines 600–700, body 400, buttons 500–600.
+• Web-safe fonts only: Inter, Roboto, Open Sans, Source Sans Pro, Lato, Poppins.
+• Size hierarchy: H1 2.25rem → H2 1.875rem → H3 1.5rem → body 1rem → small 0.875rem.
 
-Step 4 — GENERATE theme name and description.
-  • Name: "[Adjective] [Style]" e.g. "Warm Corporate", "Bold Artistic".
-  • Description: single sentence, 10–15 words.
+Step 4 — GENERATE theme name + description.
+• Name = "[Adjective] [Style]"
+• Description = 10–15 words.
 
 Step 5 — VALIDATE.
-  ✅ All hex values are valid 6-digit #RRGGBB format
-  ✅ background + foreground contrast ≥4.5:1
-  ✅ Typography sizes decrease logically H1 → small
-  ✅ success field is true
+✅ valid #RRGGBB colors
+✅ logical typography scale
 </task>
 
 <output_contract>
-Return ONLY valid JSON. No markdown fences. No explanations. No trailing commas.
-Must include: { success: true, ...allTokens }
-</output_contract>`;
+Return ONLY valid JSON matching schema.
+No markdown. No explanations.
+</output_contract>`
 }
+
 
 export function buildSketchGenerationPrompt({ colors, typography }: any) {
   return `<role>

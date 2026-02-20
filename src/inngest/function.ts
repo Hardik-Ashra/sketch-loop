@@ -115,7 +115,7 @@ export const handlePolarEvent = inngest.createFunction(
             canceledAt: toMs(sub?.canceled_at),
             seats: sub?.seats ?? undefined,
             metadata: dataUnknown,
-            creditsGrantPerPeriod: 10,
+            creditsGrantPerPeriod: 50,
             creditsRolloverLimit: 100,
         }
         console.log('[Inngest] Payload:', JSON.stringify(payload, null, 2))

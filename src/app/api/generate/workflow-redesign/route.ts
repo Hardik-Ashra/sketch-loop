@@ -3,7 +3,7 @@ import { prompts } from "@/prompts";
 import { google } from "@ai-sdk/google";
 import { streamText } from "ai";
 import { NextRequest, NextResponse } from "next/server";
-import { buildWorkflowRedesignPrompt } from "@/lib/ai/promptBuilder";
+import { buildWorkflowRedesignPrompt } from "@/prompts";
 import { validateAndFetchContext, sanitizeHTML, buildStream, handleRouteError } from "@/lib/ai/withAIRoute";
 
 const MAX_MESSAGE_LENGTH = 2000;

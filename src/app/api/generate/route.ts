@@ -3,7 +3,7 @@ import { prompts } from "@/prompts";
 import { google } from "@ai-sdk/google";
 import { streamText } from "ai";
 import { NextRequest, NextResponse } from "next/server";
-import { buildSketchGenerationPrompt } from "@/lib/ai/promptBuilder";
+import { buildSketchGenerationPrompt } from "@/prompts";
 import { validateAndFetchContext, buildStream, handleRouteError } from "@/lib/ai/withAIRoute";
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024;

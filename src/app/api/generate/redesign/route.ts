@@ -3,7 +3,7 @@ import { prompts } from "@/prompts";
 import { google } from "@ai-sdk/google";
 import { streamText } from "ai";
 import { NextRequest, NextResponse } from "next/server";
-import { buildRedesignPrompt } from "@/lib/ai/promptBuilder";
+import { buildRedesignPrompt } from "@/prompts";
 import { validateAndFetchContext, sanitizeHTML, buildStream, handleRouteError } from "@/lib/ai/withAIRoute";
 
 export async function POST(request: NextRequest) {

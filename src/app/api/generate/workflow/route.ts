@@ -3,7 +3,7 @@ import { prompts } from "@/prompts";
 import { google } from "@ai-sdk/google";
 import { streamText } from "ai";
 import { NextRequest, NextResponse } from "next/server";
-import { buildWorkflowPrompt } from "@/lib/ai/promptBuilder";
+import { buildWorkflowPrompt } from "@/prompts";
 import { validateAndFetchContext, sanitizeHTML, buildStream, handleRouteError } from "@/lib/ai/withAIRoute";
 
 const PAGE_TYPES = [
