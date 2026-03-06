@@ -9,7 +9,7 @@ const HistoryPill = () => {
         className="inline-flex items-center rounded-full backdrop-blur-xl bg-white/8 border border-white/12 p-2 text-neutral-300 saturate-150"
         aria-hidden
       >
-        <span
+        {/* <span
           className="inline-grid h-9 w-9 place-items-center rounded-full ☐ hover:bg-white/12
 transition-all cursor-pointer"
         >
@@ -21,7 +21,7 @@ transition-all cursor-pointer"
 transition-all cursor-pointer"
         >
           <Redo2 size={18} className="opacity-80 stroke-[1.75]" />
-        </span>
+        </span> */}
       </div>
     </div>
   );
