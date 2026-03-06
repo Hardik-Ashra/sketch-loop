@@ -6,7 +6,7 @@ import ToolBarShapes from "./toolbarShapes";
 const Toolbar = () => {
   return (
     <div className="fixed bottom-0 w-full grid grid-cols-3 z-58 p-5">
-      <HistoryPill />
+      {/* <HistoryPill /> */}
       <ToolBarShapes />
       <ZoomBar />
     </div>
