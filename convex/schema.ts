@@ -1,9 +1,36 @@
 import { defineSchema, defineTable } from "convex/server";
 import { authTables } from "@convex-dev/auth/server";
 import { v } from "convex/values";
+
+/* =========================================================
+   Shared Validators
+   ========================================================= */
+
+const pointValidator = v.object({ x: v.number(), y: v.number() });
+
+const viewportDataValidator = v.object({
+  scale: v.number(),
+  translate: pointValidator,
+});
+
+/**
+ * Sketches data mirrors the Redux EntityState<Shape> structure.
+ * `entities` remains v.any() because shape union types are deeply
+ * polymorphic — full typing lives in the Redux slice (Module 2).
+ * The top-level structure is still validated.
+ */
+const sketchesDataValidator = v.object({
+  ids: v.array(v.string()),
+  entities: v.any(),
+});
+
+/* =========================================================
+   Schema
+   ========================================================= */
+
 const schema = defineSchema({
   ...authTables,
-  // Your other tables...
+
   subscriptions: defineTable({
     userId: v.id("users"),
     polarCustomerId: v.string(),
@@ -11,7 +38,7 @@ const schema = defineSchema({
     productId: v.optional(v.string()),
     priceId: v.optional(v.string()),
     planCode: v.optional(v.string()),
-    status: v.string(), //"active" | "canceled" | "past_due" | "trialing" | "unpaid"
+    status: v.string(),
     currentPeriodEnd: v.optional(v.number()),
     trialEndsAt: v.optional(v.number()),
     cancelAt: v.optional(v.number()),
@@ -25,13 +52,13 @@ const schema = defineSchema({
   })
     .index("by_userId", ["userId"])
     .index("by_polarSubscriptionId", ["polarSubscriptionId"])
-    .index('by_status', ['status']),
+    .index("by_status", ["status"]),
 
   credits_ledgers: defineTable({
     userId: v.id("users"),
     subscriptionId: v.id("subscriptions"),
     amount: v.number(),
-    type: v.string(),//"grant" | "consume"| "adjustment"
+    type: v.string(),
     reason: v.optional(v.string()),
     idempotencyKey: v.optional(v.string()),
     meta: v.optional(v.any()),
@@ -45,9 +72,9 @@ const schema = defineSchema({
     name: v.string(),
     description: v.optional(v.string()),
     styleGuide: v.optional(v.string()),
-    sketchesData: v.any(), //Json structure matching Redux shapes state
-    viewportData: v.optional(v.any()), //Json structure for viewport settings
-    generatedDesignDates: v.optional(v.any()),
+    sketchesData: sketchesDataValidator,
+    viewportData: v.optional(viewportDataValidator),
+    generatedDesignDates: v.optional(v.record(v.string(), v.number())),
     thumbnail: v.optional(v.string()),
     moodBoardImages: v.optional(v.array(v.string())),
     inspirationImages: v.optional(v.array(v.string())),
@@ -56,11 +83,21 @@ const schema = defineSchema({
     isPublic: v.optional(v.boolean()),
     tags: v.optional(v.array(v.string())),
     projectNumber: v.number(),
-  }).index("by_userId", ["userId"]),
+  })
+    .index("by_userId", ["userId"])
+    .index("by_userId_lastModified", ["userId", "lastModified"]),
 
   project_counters: defineTable({
     userId: v.id("users"),
     nextProjectNumber: v.number(),
+  }).index("by_userId", ["userId"]),
+
+  user_profiles: defineTable({
+    userId: v.id("users"),
+    displayName: v.optional(v.string()),
+    avatarUrl: v.optional(v.string()),
+    authProvider: v.optional(v.string()),
+    onboardedAt: v.optional(v.number()),
   }).index("by_userId", ["userId"]),
 });
 

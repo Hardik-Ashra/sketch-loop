@@ -1,109 +1,135 @@
-"use client"
-import { useAuthActions } from "@convex-dev/auth/react"
-import { useState } from "react"
-import { useForm } from "react-hook-form"
-import { zodResolver } from "@hookform/resolvers/zod"
-import { z } from 'zod'
-import { useRouter } from "next/navigation"
+"use client";
 
-const signInSchema = z.object({
-    email: z.string().email('Invalid email address'),
-    password: z.string().min(6, 'Password must be at least 6 characters')
-})
-
-const signUpSchema = z.object({
-    firsName: z.string().min(2, 'First name must be at leat 2 characters'),
-    lastName: z.string().min(2, 'last name must be at leat 2 characters'),
-    email: z.string().email('Invalid email address'),
-    password: z.string().min(6, 'Password must be at least 6 characters')
-})
-
-type SignInData = z.infer<typeof signInSchema>
-type SignUpData = z.infer<typeof signUpSchema>
+import { useAuthActions } from "@convex-dev/auth/react";
+import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useRouter } from "next/navigation";
+import { toast } from "sonner";
+import {
+  signInSchema,
+  signUpSchema,
+  type SignInData,
+  type SignUpData,
+} from "@/lib/validators/auth";
 
 export const useAuth = () => {
+  const { signIn, signOut } = useAuthActions();
+  const router = useRouter();
+  const [isSigningIn, setIsSigningIn] = useState(false);
+  const [isSigningUp, setIsSigningUp] = useState(false);
+  const [isSigningOut, setIsSigningOut] = useState(false);
+  const [isOAuthLoading, setIsOAuthLoading] = useState<string | null>(null);
 
-    const { signIn, signOut } = useAuthActions()
-    const router = useRouter()
-    const [isLoading, setIsLoading] = useState(false)
+  /* ─── Forms ───────────────────────────────────────────── */
 
-    const signInForm = useForm<SignInData>({
-        resolver: zodResolver(signInSchema),
-        defaultValues: {
-            email: '',
-            password: ''
-        }
-    })
+  const signInForm = useForm<SignInData>({
+    resolver: zodResolver(signInSchema),
+    defaultValues: {
+      email: "",
+      password: "",
+    },
+  });
 
-    const signUpForm = useForm<SignUpData>({
-        resolver: zodResolver(signUpSchema),
-        defaultValues: {
-            firsName: '',
-            lastName: '',
-            email: '',
-            password: ''
-        }
-    })
+  const signUpForm = useForm<SignUpData>({
+    resolver: zodResolver(signUpSchema),
+    defaultValues: {
+      firstName: "",
+      lastName: "",
+      email: "",
+      password: "",
+    },
+  });
 
-    const handleSignIn = async (data: SignInData) => {
-        setIsLoading(true)
-        try {
-            await signIn("password", {
-                eamil: data.email,
-                password: data.password,
-                flow: 'signIn'
-            })
-            router.push('/dashboard')
-        }
-        catch (error) {
-            console.error(error)
-            signInForm.setError('password', {
-                message: "Invalid email or password"
-            })
-        }
-        finally {
-            setIsLoading(false)
-        }
+  /* ─── Handlers ────────────────────────────────────────── */
+
+  const handleSignIn = async (data: SignInData) => {
+    setIsSigningIn(true);
+    try {
+      await signIn("password", {
+        email: data.email,
+        password: data.password,
+        flow: "signIn",
+      });
+      toast.success("Welcome back!");
+      router.push("/dashboard");
+    } catch (error) {
+      console.error("Sign-in error:", error);
+      signInForm.setError("root", {
+        message: "Invalid email or password",
+      });
+      toast.error("Invalid email or password");
+    } finally {
+      setIsSigningIn(false);
     }
+  };
 
-    const handleSignUp = async (data: SignUpData) => {
-        setIsLoading(true)
-        try {
-            await signIn("password", {
-                eamil: data.email,
-                password: data.password,
-                name: `${data.firsName} ${data.lastName}`,
-                flow: 'signUp'
-            })
-            router.push('/dashboard')
-        }
-        catch (error) {
-            console.error('Sign up error:', error)
-            signUpForm.setError('root', {
-                message: "Failed to create account.Email may already exist."
-            })
-        }
-        finally {
-            setIsLoading(false)
-        }
+  const handleSignUp = async (data: SignUpData) => {
+    setIsSigningUp(true);
+    try {
+      await signIn("password", {
+        email: data.email,
+        password: data.password,
+        name: `${data.firstName} ${data.lastName}`,
+        flow: "signUp",
+      });
+      toast.success("Account created successfully!");
+      router.push("/dashboard");
+    } catch (error) {
+      console.error("Sign-up error:", error);
+      signUpForm.setError("root", {
+        message: "Failed to create account. Email may already be in use.",
+      });
+      toast.error("Failed to create account");
+    } finally {
+      setIsSigningUp(false);
     }
+  };
 
-    const handleSignOut = async () => {
-        try {
-            await signOut()
-            router.push('/auth/sign-in')
-        }
-        catch (error) {
-            console.error('Sign out error:', error)
-        }
+  const handleGoogleSignIn = async () => {
+    setIsOAuthLoading("google");
+    try {
+      await signIn("google");
+    } catch (error) {
+      console.error("Google sign-in error:", error);
+      toast.error("Google sign-in failed. Please try again.");
+    } finally {
+      setIsOAuthLoading(null);
     }
+  };
 
-    return {
-        signInForm,
-        signUpForm,
-        handleSignIn,
-        handleSignUp,
-        handleSignOut,
-        isLoading
+  const handleSignOut = async () => {
+    setIsSigningOut(true);
+    try {
+      await signOut();
+      toast.success("Signed out successfully");
+      router.push("/auth/sign-in");
+    } catch (error) {
+      console.error("Sign-out error:", error);
+      toast.error("Failed to sign out");
+    } finally {
+      setIsSigningOut(false);
     }
-}
+  };
+
+  /* ─── Computed ────────────────────────────────────────── */
+
+  const isLoading = isSigningIn || isSigningUp || isSigningOut || !!isOAuthLoading;
+
+  return {
+    // Forms
+    signInForm,
+    signUpForm,
+    // Handlers
+    handleSignIn,
+    handleSignUp,
+    handleGoogleSignIn,
+    handleSignOut,
+    // Loading states
+    isLoading,
+    isSigningIn,
+    isSigningUp,
+    isSigningOut,
+    isOAuthLoading,
+  };
+};
