@@ -1,11 +1,15 @@
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
 
+type CheckoutResponse = {
+    url: string
+}
+
 export const BillingApi = createApi({
     reducerPath: 'billing',
     baseQuery: fetchBaseQuery({ baseUrl: '/api/billing' }),
     endpoints: (builder) => ({
-        getCheckout: builder.query({
-            query: (userId: string) => ({
+        getCheckout: builder.query<CheckoutResponse, string>({
+            query: (userId) => ({
                 url: '/checkout',
                 method: 'GET',
                 params: {
@@ -13,7 +17,7 @@ export const BillingApi = createApi({
                 },
             }),
         }),
-    })
+    }),
 })
 
-export const { useLazyGetCheckoutQuery } = BillingApi;
+export const { useLazyGetCheckoutQuery } = BillingApi
