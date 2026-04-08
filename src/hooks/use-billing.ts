@@ -26,20 +26,19 @@ export const useSubscriptionPlan = () => {
             window.location.assign(res.url)
         } catch (err) {
             const error = err as FetchBaseQueryError & {
-                data?: { message?: string } | string | null
+                data?: { message?: string; error?: string } | string | null
             }
 
             let message = CHECKOUT_FALLBACK_ERROR
 
             if (typeof error?.data === 'string') {
                 message = error.data
-            } else if (
-                error?.data &&
-                typeof error.data === 'object' &&
-                'message' in error.data &&
-                typeof error.data.message === 'string'
-            ) {
-                message = error.data.message
+            } else if (error?.data && typeof error.data === 'object') {
+                if (typeof error.data.message === 'string') {
+                    message = error.data.message
+                } else if (typeof error.data.error === 'string') {
+                    message = error.data.error
+                }
             }
 
             console.error('Checkout error:', err)
