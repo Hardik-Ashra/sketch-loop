@@ -23,7 +23,7 @@ const Navbar = () => {
 
   const pathname = usePathname();
 
-  const me = useAppSelector((state) => state.profile);
+  const me = useAppSelector((state) => state.profile.user);
 
   const tabs: TabsProps[] = [
     {

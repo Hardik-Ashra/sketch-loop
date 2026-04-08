@@ -15,8 +15,8 @@ const ProjectsList = () => {
   // created isCreating=true flips canCreate to false, which was incorrectly
   // triggering the "Please sign in" screen mid-creation.
   // We only need userId here to (a) guard the sign-in wall and (b) build URLs.
-  const userId = useAppSelector((state) => state.profile?.id);
-  const username = useAppSelector((state) => state.profile?.name);
+  const userId = useAppSelector((state) => state.profile.user?.id);
+  const username = useAppSelector((state) => state.profile.user?.name);
 
   if (!userId) {
     return (

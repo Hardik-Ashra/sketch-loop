@@ -7,7 +7,7 @@ const CHECKOUT_FALLBACK_ERROR = 'Could not start checkout. Please try again.'
 
 export const useSubscriptionPlan = () => {
     const [trigger, { isFetching }] = useLazyGetCheckoutQuery()
-    const { id } = useAppSelector((state) => state.profile)
+    const id = useAppSelector((state) => state.profile.user?.id)
 
     const onSubscribe = async () => {
         if (!id) {

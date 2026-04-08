@@ -17,8 +17,8 @@ export const useProjectCreation = () => {
 
     // ✅ Granular selectors — only re-renders when the specific field changes,
     // not whenever anything in the profile/projects/shapes slice changes.
-    const userId = useAppSelector((state) => state.profile?.id)
-    const username = useAppSelector((state) => state.profile?.name)
+    const userId = useAppSelector((state) => state.profile.user?.id)
+    const username = useAppSelector((state) => state.profile.user?.name)
 
     const isCreating = useAppSelector((state) => state.projects.isCreating)
     const projects = useAppSelector((state) => state.projects.projects)
