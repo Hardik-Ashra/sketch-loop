@@ -4,6 +4,6 @@ import { realtimeMiddleware } from "@inngest/realtime/middleware"
 export const inngest = new Inngest({
     id: "sketch-loop",
     middleware: [
-        realtimeMiddleware()
+        realtimeMiddleware() as any
     ]
 })

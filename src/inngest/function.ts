@@ -4,10 +4,9 @@ import { api } from '../../convex/_generated/api'
 // import { PolarOrder, PolarSubscription, ReceivedEvent, extractOrderLike, extractSubscriptionLike, isEntitledStatus, isPolarwebhookEvent, toMs } from '@/types/polar'
 import { Id } from '../../convex/_generated/dataModel'
 
-export const autosaveProjectWorkflow = inngest.createFunction(
-    { id: 'autosave-project-workflow' },
-    { event: 'project/autosave.requested' },
-    async ({ event }) => {
+export const autosaveProjectWorkflow = (inngest as any).createFunction(
+    { id: 'autosave-project-workflow', event: 'project/autosave.requested' },
+    async ({ event }: any) => {
         const { projectId, userId, shapesData, viewportData } = event.data
         try {
             await fetchMutation(api.projects.updateProjectSketches, {
