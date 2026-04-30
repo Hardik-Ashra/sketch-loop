@@ -1,6 +1,6 @@
 import { MoodboardImagesQuery, StyleGuideQuery } from "@/convex/query.config";
 import MoodBoard from "@/components/style/mood-board";
-import { ThemeContent } from "@/components/style/theme";
+import { ThemeContent, ColorGuide } from "@/components/style/theme";
 import StyleGuideTypography from "@/components/style/typography";
 import { TabsContent } from "@/components/ui/tabs";
 import { MoodboardImage } from "@/hooks/use-styles";
@@ -18,7 +18,7 @@ const Page = async ({ searchParams }: Props) => {
   const guide = existingStyleGuide.styleGuide
     ?._valueJSON as unknown as StyleGuide;
 
-  const colorGuide = (guide?.colorSections as any) || {};
+  const colorGuide = (guide?.colorSections as unknown as ColorGuide) || {};
   const typographyGuide = guide?.typographySections || [];
 
   const existingMoodboardImages = await MoodboardImagesQuery(projectId);
