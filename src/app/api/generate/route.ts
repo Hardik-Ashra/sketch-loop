@@ -1,4 +1,4 @@
-import { ConsumeCreditsQuery, CreditsBalanceQuery, InspirationImagesQuery, StyleGuideQuery } from "@/convex/query.config"
+import { InspirationImagesQuery, StyleGuideQuery } from "@/convex/query.config"
 import { prompts } from "@/prompts"
 import { google } from "@ai-sdk/google"
 import { streamText } from "ai"
@@ -24,7 +24,7 @@ export async function POST(request: NextRequest) {
 
             )
         }
-        const { ok: balanceOk, balance: balanceBalance } =
+        /* const { ok: balanceOk, balance: balanceBalance } =
             await CreditsBalanceQuery()
 
         if (!balanceOk) {
@@ -41,15 +41,15 @@ export async function POST(request: NextRequest) {
 
             )
 
-        }
-        const { ok } = await ConsumeCreditsQuery({ amount: 1 })
+        } */
+        /* const { ok } = await ConsumeCreditsQuery({ amount: 1 })
 
         if (!ok) {
             return NextResponse.json(
                 { error: 'no credits available' },
                 { status: 400 }
             )
-        }
+        } */
         const imageBuffer = await imageFile.arrayBuffer()
         const base64Image = Buffer.from(imageBuffer).toString('base64')
         // const styleGuide = await StyleGuideQuery(projectId)

@@ -11,16 +11,16 @@ import GeneratedUI from "./generatedUi";
 
 const ShapeRenderer = ({
   shape,
-  toggleInspiration,
-  toggleChat,
-  generateWorkflow,
-  exportDesign,
+  toggleInspiration = () => {},
+  toggleChat = () => {},
+  generateWorkflow = () => {},
+  exportDesign = () => {},
 }: {
   shape: Shape;
-  toggleInspiration: () => void;
-  toggleChat: (generatedUIId: string) => void;
-  generateWorkflow: (generatedUIId: string) => void;
-  exportDesign: (generatedUIId: string, element: HTMLElement | null) => void;
+  toggleInspiration?: () => void;
+  toggleChat?: (generatedUIId: string) => void;
+  generateWorkflow?: (generatedUIId: string) => void;
+  exportDesign?: (generatedUIId: string, element: HTMLElement | null) => void;
 }) => {
   switch (shape.type) {
     case "frame":

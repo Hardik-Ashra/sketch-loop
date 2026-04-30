@@ -13,7 +13,7 @@ const signInSchema = z.object({
 })
 
 const signUpSchema = z.object({
-    firsName: z.string().min(2, 'First name must be at leat 2 characters'),
+    firstName: z.string().min(2, 'First name must be at leat 2 characters'),
     lastName: z.string().min(2, 'last name must be at leat 2 characters'),
     email: z.string().email('Invalid email address'),
     password: z.string().min(6, 'Password must be at least 6 characters')
@@ -39,7 +39,7 @@ export const useAuth = () => {
     const signUpForm = useForm<SignUpData>({
         resolver: zodResolver(signUpSchema),
         defaultValues: {
-            firsName: '',
+            firstName: '',
             lastName: '',
             email: '',
             password: ''
@@ -50,7 +50,7 @@ export const useAuth = () => {
         setIsLoading(true)
         try {
             await signIn("password", {
-                eamil: data.email,
+                email: data.email,
                 password: data.password,
                 flow: 'signIn'
             })
@@ -71,9 +71,9 @@ export const useAuth = () => {
         setIsLoading(true)
         try {
             await signIn("password", {
-                eamil: data.email,
+                email: data.email,
                 password: data.password,
-                name: `${data.firsName} ${data.lastName}`,
+                name: `${data.firstName} ${data.lastName}`,
                 flow: 'signUp'
             })
             router.push('/dashboard')

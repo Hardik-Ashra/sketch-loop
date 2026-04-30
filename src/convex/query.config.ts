@@ -12,7 +12,7 @@ export const ProfileQuery = async () => {
         { token: await convexAuthNextjsToken() }
     )
 }
-export const SubscriptionEntitlementQuery = async () => {
+/* export const SubscriptionEntitlementQuery = async () => {
     const rawProfile = await ProfileQuery()
     const profile = normalizeProfile(
         rawProfile._valueJSON as unknown as ConvexUserRaw | null
@@ -25,7 +25,7 @@ export const SubscriptionEntitlementQuery = async () => {
     )
 
     return { entitlement, profileName: profile?.name }
-}
+} */
 export const ProjectQuery = async (projectId: string) => {
     const rawProfile = await ProfileQuery()
     const profile = normalizeProfile(
@@ -77,7 +77,7 @@ export const MoodboardImagesQuery = async (projectId: string) => {
     return { images }
 }
 
-export const CreditsBalanceQuery = async () => {
+/* export const CreditsBalanceQuery = async () => {
     const rawProfile = await ProfileQuery()
     const profile = normalizeProfile(
         rawProfile._valueJSON as unknown as ConvexUserRaw | null
@@ -111,7 +111,7 @@ export const ConsumeCreditsQuery = async ({ amount }: { amount?: number }) => {
         { token: await convexAuthNextjsToken() }
     )
     return { ok: credits.ok, balance: credits.balance, profile }
-}
+} */
 
 
 export const InspirationImagesQuery = async (projectId: string) => {

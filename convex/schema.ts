@@ -4,7 +4,7 @@ import { v } from "convex/values";
 const schema = defineSchema({
   ...authTables,
   // Your other tables...
-  subscriptions: defineTable({
+  /* subscriptions: defineTable({
     userId: v.id("users"),
     polarCustomerId: v.string(),
     polarSubscriptionId: v.string(),
@@ -38,7 +38,7 @@ const schema = defineSchema({
   })
     .index("by_userId", ["userId"])
     .index("by_subscriptionId", ["subscriptionId"])
-    .index("by_idempotencyKey", ["idempotencyKey"]),
+    .index("by_idempotencyKey", ["idempotencyKey"]), */
 
   projects: defineTable({
     userId: v.id("users"),

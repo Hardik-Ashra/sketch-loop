@@ -133,7 +133,7 @@ export default function SignIn() {
                             asChild
                             variant="link"
                             className="px-2">
-                            <Link href="#">Create account</Link>
+                            <Link href="/auth/sign-up">Create account</Link>
                         </Button>
                     </p>
                 </div>

@@ -1,4 +1,4 @@
-import { ConsumeCreditsQuery, CreditsBalanceQuery, InspirationImagesQuery, StyleGuideQuery } from "@/convex/query.config"
+import { InspirationImagesQuery, StyleGuideQuery } from "@/convex/query.config"
 import { prompts } from "@/prompts"
 import { google } from "@ai-sdk/google"
 import { streamText } from "ai"
@@ -24,7 +24,7 @@ export async function POST(request: NextRequest) {
             )
         }
         // Check credits (workflow generation consumes 1 credit)
-        const { ok: balanceOk, balance: balanceBalance } =
+        /* const { ok: balanceOk, balance: balanceBalance } =
             await CreditsBalanceQuery()
         if (!balanceOk || balanceBalance === 0) {
             return NextResponse.json(
@@ -39,7 +39,7 @@ export async function POST(request: NextRequest) {
                 { error: 'Failed to consume credits' },
                 { status: 500 }
             )
-        }
+        } */
 
 
         // Get project ID from request body for style guide

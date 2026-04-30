@@ -18,7 +18,7 @@ const Page = async ({ searchParams }: Props) => {
   const guide = existingStyleGuide.styleGuide
     ?._valueJSON as unknown as StyleGuide;
 
-  const colorGuide = guide?.colorSections || [];
+  const colorGuide = (guide?.colorSections as any) || {};
   const typographyGuide = guide?.typographySections || [];
 
   const existingMoodboardImages = await MoodboardImagesQuery(projectId);

@@ -1,7 +1,7 @@
 
 
 import { NextRequest, NextResponse } from "next/server"
-import { ConsumeCreditsQuery, CreditsBalanceQuery, MoodboardImagesQuery } from "@/convex/query.config"
+import { MoodboardImagesQuery } from "@/convex/query.config"
 import { MoodboardImage } from "@/hooks/use-styles"
 import { prompts } from "@/prompts"
 import { generateObject } from "ai"
@@ -139,7 +139,7 @@ export async function POST(request: NextRequest) {
         }
 
         // Check credits balance
-        const { ok: balanceOk, balance: balanceBalance } =
+        /* const { ok: balanceOk, balance: balanceBalance } =
             await CreditsBalanceQuery()
 
         if (!balanceOk) {
@@ -154,7 +154,7 @@ export async function POST(request: NextRequest) {
                 { error: 'Insufficient credits' },
                 { status: 400 }
             )
-        }
+        } */
 
         // Fetch moodboard images
 
@@ -211,13 +211,13 @@ export async function POST(request: NextRequest) {
 
 
         // Consume credits
-        const { ok, balance } = await ConsumeCreditsQuery({ amount: 1 })
+        /* const { ok, balance } = await ConsumeCreditsQuery({ amount: 1 })
         if (!ok) {
             return NextResponse.json(
                 { error: 'Failed to consume credits' },
                 { status: 500 }
             )
-        }
+        } */
 
         // Update project with style guide
         await fetchMutation(
@@ -235,7 +235,7 @@ export async function POST(request: NextRequest) {
             success: true,
             styleGuide: result.object,
             message: 'Style guide generated successfully',
-            balance,
+            balance: 999, // mocked
         })
     } catch (error) {
         console.error('Error generating style guide: ', error)

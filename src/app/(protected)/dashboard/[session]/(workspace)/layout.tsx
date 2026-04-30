@@ -1,4 +1,5 @@
-import { SubscriptionEntitlementQuery } from "@/convex/query.config";
+import { ProfileQuery } from "@/convex/query.config";
+import { normalizeProfile, ConvexUserRaw } from "@/types/user";
 import Navbar from "@/components/navbar/navbar";
 import { combineSlug } from "@/lib/utils";
 import { redirect } from "next/navigation";
@@ -7,10 +8,9 @@ type Props = {
   children: React.ReactNode;
 };
 const Layout = async ({ children }: Props) => {
-  const { profileName, entitlement } = await SubscriptionEntitlementQuery();
-  if (!entitlement._valueJSON) {
-    redirect(`/billing/${combineSlug(profileName!)}`);
-  }
+  const rawProfile = await ProfileQuery();
+  const profile = normalizeProfile(rawProfile._valueJSON as unknown as ConvexUserRaw | null);
+  const profileName = profile?.name;
   return (
     <div className="grid grid-cols-1">
       <Navbar />

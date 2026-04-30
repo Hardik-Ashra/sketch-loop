@@ -39,7 +39,7 @@ const InfinityCanvas = () => {
   const { isInspirationOpen, closeInspiration, toggleInspiration } =
     useInspiration();
 
-  const { isChatOpen, activeGeneratedUIId, generateWorkflow, exportDesign } =
+  const { isChatOpen, activeGeneratedUIId, generateWorkflow } =
     useGlobalChat();
 
   const draftShape = getDraftShape();
@@ -86,7 +86,7 @@ const InfinityCanvas = () => {
             <ShapeRenderer
               key={shape.id}
               shape={shape}
-              toggleChat={toggleInspiration}
+              toggleInspiration={toggleInspiration}
               // toggleChat={toggleChat}
               generateWorkflow={generateWorkflow}
               // exportDesign={exportDesign}
